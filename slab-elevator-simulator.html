@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Spartan Installations — Slab Fit Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root {
+  --bg: #0a0b0e;
+  --sf1: #101216;
+  --sf2: #171a20;
+  --sf3: #1e222a;
+  --sf4: #272c36;
+  --brd: rgba(255,255,255,.06);
+  --brd2: rgba(255,255,255,.1);
+  --tx: #d6d2ca;
+  --tx2: #8b8792;
+  --tx3: #4e4b56;
+  --copper: #c17f59;
+  --copper2: #d9a07a;
+  --copper3: #a06840;
+  --jade: #5f9e7e;
+  --jade2: #3d7a5a;
+  --ember: #b85450;
+  --ember2: #d4716c;
+  --sand: #c4b698;
+  --sand2: #a89a7c;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased;position:fixed;inset:0}
+
+/* ---- HEADER ---- */
+.hdr{background:linear-gradient(180deg,var(--sf2),var(--sf1));border-bottom:1px solid var(--brd2);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:relative}
+.hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--copper3),transparent)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:28px;height:28px;border:2px solid var(--copper);border-radius:2px;display:flex;align-items:center;justify-content:center;transform:rotate(45deg)}
+.brand-mark span{transform:rotate(-45deg);font:700 11px 'Space Mono',monospace;color:var(--copper);letter-spacing:-1px}
+.brand h1{font-size:15px;font-weight:500;color:var(--tx);letter-spacing:-.3px}
+.brand h1 em{font-style:italic;font-weight:300;color:var(--tx3);margin-left:6px;font-size:12px}
+.utog{display:flex;border-radius:3px;overflow:hidden;border:1px solid var(--brd2)}
+.utog button{padding:5px 16px;background:var(--sf3);border:none;color:var(--tx3);font:500 11px 'Space Mono',monospace;cursor:pointer;transition:all .2s}
+.utog button.on{background:var(--copper);color:var(--bg);text-shadow:0 1px 0 rgba(0,0,0,.2)}
+
+/* ---- LAYOUT ---- */
+.app{display:grid;grid-template-columns:310px 1fr;height:calc(100vh - 52px);height:calc(100dvh - 52px)}
+@media(max-width:1024px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100vh - 52px);height:calc(100dvh - 52px)}.side{max-height:40vh;max-height:40dvh}}
+.side{background:var(--sf1);border-right:1px solid var(--brd);padding:20px 18px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--sf4) transparent}
+.side::-webkit-scrollbar{width:5px}.side::-webkit-scrollbar-thumb{background:var(--sf4);border-radius:3px}
+.main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* ---- SECTION LABELS ---- */
+.sec{display:flex;align-items:center;gap:8px;margin:22px 0 10px;position:relative}
+.sec:first-child{margin-top:0}
+.sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--brd2),transparent)}
+.sec span{font:600 9px/1 'Space Mono',monospace;text-transform:uppercase;letter-spacing:2px;color:var(--tx3);white-space:nowrap}
+
+/* ---- FIELDS ---- */
+.fld{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.fld label{font-size:12px;color:var(--tx2);min-width:108px;font-weight:400}
+.fld input[type=number]{flex:1;min-width:0;padding:7px 10px;background:var(--sf2);border:1px solid var(--brd2);border-radius:3px;color:var(--tx);font:400 14px 'Space Mono',monospace;outline:none;transition:border-color .2s,box-shadow .2s}
+.fld input[type=number]:focus{border-color:var(--copper3);box-shadow:0 0 0 2px rgba(193,127,89,.12)}
+.fld .u{font:400 10px 'Space Mono',monospace;color:var(--tx3);width:20px;text-align:right}
+
+/* ---- BUTTONS ---- */
+.btn{width:100%;padding:11px 16px;margin-top:14px;border:none;border-radius:3px;font:600 12px 'DM Sans',sans-serif;cursor:pointer;transition:all .2s;letter-spacing:.3px;position:relative;overflow:hidden}
+.btn-go{background:linear-gradient(135deg,var(--copper),var(--copper3));color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3);box-shadow:0 2px 8px rgba(193,127,89,.2)}
+.btn-go:hover{box-shadow:0 4px 16px rgba(193,127,89,.3);transform:translateY(-1px)}
+.btn-go:active{transform:translateY(0)}
+.btn-exp{background:var(--sf2);border:1px solid var(--brd2);color:var(--tx3);margin-top:6px;font-size:11px}
+.btn-exp:hover{border-color:var(--tx3);color:var(--tx2)}
+.presets select{width:100%;padding:7px 10px;background:var(--sf2);border:1px solid var(--brd2);border-radius:3px;color:var(--tx2);font:400 12px 'DM Sans',sans-serif;outline:none;cursor:pointer;margin-top:4px;transition:border-color .2s}
+.presets select:focus{border-color:var(--copper3)}
+
+/* ---- TOGGLES ---- */
+.chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--tx2)}
+.chk input{accent-color:var(--copper);width:14px;height:14px}
+
+/* ---- 3D VIEWPORT ---- */
+.v3d{flex:1 1 0%;position:relative;min-height:200px;background:var(--bg);overflow:hidden;-webkit-overflow-scrolling:touch}
+.v3d::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;box-shadow:inset 0 0 60px rgba(0,0,0,.5);border-radius:0}
+.v3d canvas{display:block;width:100%;height:100%}
+
+/* ---- OVERLAYS ---- */
+.narr{position:absolute;top:14px;left:14px;right:14px;pointer-events:none;z-index:2}
+.narr-box{background:linear-gradient(135deg,rgba(16,18,22,.92),rgba(10,11,14,.92));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(12px);border:1px solid var(--brd2);border-radius:4px;padding:10px 14px;font-size:12px;line-height:1.5;pointer-events:auto;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.narr-box .lb{font:600 9px/1 'Space Mono',monospace;text-transform:uppercase;letter-spacing:1.5px;color:var(--copper);margin-bottom:4px;display:block}
+.leg{position:absolute;bottom:14px;left:14px;background:linear-gradient(135deg,rgba(16,18,22,.9),rgba(10,11,14,.9));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(12px);border:1px solid var(--brd2);border-radius:4px;padding:10px 14px;z-index:2;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.leg h4{font:600 8px/1 'Space Mono',monospace;text-transform:uppercase;letter-spacing:2px;color:var(--tx3);margin-bottom:8px}
+.leg-i{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11px;color:var(--tx2)}.leg-i:last-child{margin-bottom:0}
+.leg-s{width:16px;height:8px;border-radius:1px;flex-shrink:0}
+
+/* ---- CONTROLS BAR ---- */
+.cbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--sf1);border-top:1px solid var(--brd);flex-wrap:wrap}
+.cbar button{padding:5px 14px;background:var(--sf3);border:1px solid var(--brd2);border-radius:3px;color:var(--tx2);font:500 11px 'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+.cbar button:hover{border-color:var(--copper3);color:var(--copper2)}
+.cbar button.act{background:var(--copper);color:#fff;border-color:var(--copper);box-shadow:0 2px 8px rgba(193,127,89,.25)}
+.cbar .sp{width:1px;height:20px;background:var(--brd2)}
+.cbar .lb{font:400 10px 'Space Mono',monospace;color:var(--tx3)}
+.cbar input[type=range]{width:64px;accent-color:var(--copper)}
+.cbar .hint{margin-left:auto;font:italic 300 11px 'DM Sans',sans-serif;color:var(--tx3)}
+
+/* ---- RESULTS ---- */
+.res{background:var(--sf1);border-top:1px solid var(--brd);padding:12px 16px;overflow-y:auto;max-height:220px}
+.res h3{font:600 9px 'Space Mono',monospace;color:var(--tx3);margin-bottom:10px;text-transform:uppercase;letter-spacing:2px}
+.rg{display:grid;gap:6px}
+.ri{display:flex;gap:10px;padding:10px 12px;background:var(--sf2);border-radius:3px;border-left:3px solid var(--sf4);align-items:flex-start;transition:border-color .2s}
+.ri.pass{border-left-color:var(--jade)}.ri.fail{border-left-color:var(--ember)}
+.ri .ico{font-size:14px;flex-shrink:0;margin-top:1px}
+.ri .txt{font-size:12px;line-height:1.5}.ri .txt strong{font-weight:600;letter-spacing:-.2px}
+.ri .txt .d{font:400 10px 'Space Mono',monospace;color:var(--tx3);display:block;margin-top:2px}
+.tip{margin-top:10px;padding:10px 12px;background:rgba(193,127,89,.06);border:1px solid rgba(193,127,89,.15);border-radius:3px;font-size:12px;color:var(--copper2);line-height:1.5}
+.empty-msg{text-align:center;padding:24px;color:var(--tx3);font-size:13px;font-weight:300}
+
+/* ---- PROGRESS ---- */
+.prog{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,rgba(16,18,22,.95),rgba(10,11,14,.95));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(16px);border:1px solid var(--brd2);border-radius:6px;padding:24px 36px;text-align:center;z-index:10;box-shadow:0 16px 64px rgba(0,0,0,.6)}
+.prog .pt{font:400 14px 'Space Mono',monospace;color:var(--copper);margin:10px 0}
+.pbar{width:220px;height:3px;background:var(--sf3);border-radius:2px;margin:0 auto;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--copper3),var(--copper));transition:width .15s;border-radius:2px}
+
+/* ---- SIDEBAR SECTIONS ---- */
+.manual-sec{border-top:1px solid var(--brd);padding-top:14px;margin-top:14px}
+.m-slider{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.m-slider label{font:400 11px 'DM Sans',sans-serif;color:var(--tx3);min-width:42px}
+.m-slider input[type=range]{flex:1;accent-color:var(--copper);height:3px}
+.m-slider .m-val{font:400 10px 'Space Mono',monospace;color:var(--tx2);min-width:42px;text-align:right}
+.m-status{font-size:11px;padding:6px 10px;border-radius:3px;margin-top:6px;text-align:center;font-weight:500}
+.m-status.ok{background:rgba(95,158,126,.08);color:var(--jade);border:1px solid rgba(95,158,126,.15)}
+.m-status.bad{background:rgba(184,84,80,.08);color:var(--ember2);border:1px solid rgba(184,84,80,.15)}
+
+.door-mini{margin:4px 0 8px;padding:8px 0 6px;position:relative}
+.door-mini canvas{display:block;width:100%;height:38px;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="brand">
+    <div class="brand-mark"><span>SI</span></div>
+    <h1>Slab Fit Simulator<em>by Spartan Installations</em></h1>
+  </div>
+  <div class="utog">
+    <button id="btnIn" class="on" onclick="setUnit('in')">IN</button>
+    <button id="btnCm" onclick="setUnit('cm')">CM</button>
+  </div>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="sec"><span>Elevator</span></div>
+    <div class="fld"><label>Door Width</label><input id="doorW" type="number" value="36" step=".1"><span class="u">in</span></div>
+    <div class="fld"><label>Door Height</label><input id="doorH" type="number" value="84" step=".1"><span class="u">in</span></div>
+    <div class="fld"><label>Door Offset</label><input id="doorOff" type="number" value="16" step=".1"><span class="u">in</span></div>
+    <div class="door-mini" id="doorMini"></div>
+    <div class="fld"><label>Interior Width</label><input id="intW" type="number" value="68" step=".1"><span class="u">in</span></div>
+    <div class="fld"><label>Interior Depth</label><input id="intD" type="number" value="54" step=".1"><span class="u">in</span></div>
+    <div class="fld"><label>Interior Height</label><input id="intH" type="number" value="96" step=".1"><span class="u">in</span></div>
+    <div class="sec"><span>Stone Slab</span></div>
+    <div class="fld"><label>Length</label><input id="slabL" type="number" value="72" step=".1"><span class="u">in</span></div>
+    <div class="fld"><label>Width</label><input id="slabW" type="number" value="36" step=".1"><span class="u">in</span></div>
+    <div class="fld"><label>Thickness</label><input id="slabT" type="number" value="1.25" step=".1"><span class="u">in</span></div>
+    <div class="presets">
+      <div class="sec"><span>Presets</span></div>
+      <select id="presets" onchange="applyPreset(this.value)">
+        <option value="">Select a configuration...</option>
+        <option value="std">Standard Passenger Elevator</option>
+        <option value="freight">Freight Elevator</option>
+        <option value="res">Residential Elevator</option>
+        <option value="sm">Small Countertop</option>
+        <option value="lg">Full Kitchen Island</option>
+      </select>
+    </div>
+    <button class="btn btn-go" id="goBtn" onclick="startManualMode()">Position &amp; Solve</button>
+    <div class="manual-sec">
+      <div class="sec"><span>Manual Position</span></div>
+      <div style="font-size:11px;color:var(--tx3);margin-bottom:10px;line-height:1.4;font-weight:300">Position the slab at the door, then solve the entry path from there.</div>
+      <div class="m-slider"><label>X pos</label><input type="range" id="mX" min="-1" max="1" step="0.01" value="0"><span class="m-val" id="mXv">center</span></div>
+      <div class="m-slider"><label>Height</label><input type="range" id="mY" min="0" max="1" step="0.01" value="0"><span class="m-val" id="mYv">floor</span></div>
+      <div class="m-slider"><label>Depth</label><input type="range" id="mZ" min="0" max="1" step="0.01" value="0.5"><span class="m-val" id="mZv">at door</span></div>
+      <div class="m-slider"><label>Tilt</label><input type="range" id="mRx" min="-90" max="90" step="1" value="0"><span class="m-val" id="mRxv">0°</span></div>
+      <div class="m-slider"><label>Turn</label><input type="range" id="mRy" min="-90" max="90" step="1" value="0"><span class="m-val" id="mRyv">0°</span></div>
+      <div class="m-slider"><label>Roll</label><input type="range" id="mRz" min="-90" max="90" step="1" value="0"><span class="m-val" id="mRzv">0°</span></div>
+      <div class="m-status" id="mStatus" style="display:none"></div>
+      <button class="btn btn-go" id="solveBtn" onclick="solveFromManual()" style="margin-top:10px">Solve From Here</button>
+    </div>
+    <div class="manual-sec">
+      <div class="sec"><span>Physics</span></div>
+      <div class="m-slider"><label>Attract</label><input type="range" id="kAttr" min="0.1" max="3" step="0.1" value="1"><span class="m-val" id="kAttrV">1.0</span></div>
+      <div class="m-slider"><label>Repel</label><input type="range" id="kRep" min="0.5" max="8" step="0.1" value="3"><span class="m-val" id="kRepV">3.0</span></div>
+      <div class="m-slider"><label>Margin</label><input type="range" id="kMarg" min="0.5" max="6" step="0.25" value="2"><span class="m-val" id="kMargV">2.0"</span></div>
+      <div class="m-slider"><label>Wiggle</label><input type="range" id="kWig" min="0" max="2" step="0.1" value="0.6"><span class="m-val" id="kWigV">0.6</span></div>
+    </div>
+    <div class="chk" style="margin-top:14px"><input type="checkbox" id="showGhost" checked><label for="showGhost">Show swept volume trail</label></div>
+    <div class="chk"><input type="checkbox" id="showDebug"><label for="showDebug">Debug overlay (forces + vectors)</label></div>
+    <button class="btn btn-exp" onclick="doExport()">Export Report</button>
+  </div>
+  <div class="main">
+    <div class="v3d" id="v3d">
+      <canvas id="c3d"></canvas>
+      <div class="narr" id="narr"></div>
+      <div class="leg" id="leg" style="display:none">
+        <h4>Legend</h4>
+        <div class="leg-i"><div class="leg-s" style="background:rgba(80,90,110,.5)"></div>Elevator cabin</div>
+        <div class="leg-i"><div class="leg-s" style="background:rgba(45,50,60,.8)"></div>Floor surface</div>
+        <div class="leg-i"><div class="leg-s" style="background:var(--copper);opacity:.4"></div>Door opening</div>
+        <div class="leg-i"><div class="leg-s" style="background:var(--sand)"></div>Stone slab</div>
+        <div class="leg-i"><div class="leg-s" style="background:rgba(100,160,220,.2)"></div>Swept volume</div>
+        <div class="leg-i"><div class="leg-s" style="background:var(--ember)"></div>Collision</div>
+      </div>
+      <div class="prog" id="prog" style="display:none">
+        <div style="font:300 13px 'DM Sans',sans-serif;color:var(--tx2)">Computing entry path...</div>
+        <div class="pt" id="progTxt">0 / 1200</div>
+        <div class="pbar"><div class="pfill" id="progBar"></div></div>
+      </div>
+    </div>
+    <div class="cbar">
+      <button id="btnPlay" onclick="togglePlay()">&#9654; Play</button>
+      <button onclick="resetAnim()">&#8634; Reset</button>
+      <div class="sp"></div>
+      <span class="lb">Speed</span>
+      <input type="range" id="spdR" min="0.1" max="3" step="0.05" value="0.6">
+      <span class="lb" id="spdL">0.6x</span>
+      <div class="sp"></div>
+      <span class="lb">Camera</span>
+      <button onclick="setView('front')">Front</button>
+      <button onclick="setView('top')">Top</button>
+      <button onclick="setView('side')">Side</button>
+      <button onclick="setView('iso')">Orbit</button>
+      <div class="sp"></div>
+      <button id="btnDebug" onclick="toggleDebug()">Debug</button>
+      <span class="hint">drag to orbit / scroll to zoom</span>
+    </div>
+    <div class="res" id="res">
+      <h3>Analysis</h3>
+      <div id="emptyMsg" class="empty-msg">Enter dimensions above and run the simulation</div>
+      <div id="rg" class="rg" style="display:none"></div>
+      <div id="tipBox" class="tip" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  GLOBALS
+// ================================================================
+const $=id=>document.getElementById(id);
+const PI=Math.PI,sin=Math.sin,cos=Math.cos,sqrt=Math.sqrt,abs=Math.abs,min=Math.min,max=Math.max,floor=Math.floor,ceil=Math.ceil,random=Math.random;
+let unit='in',sim=null,solvedPath=null,ghostTrail=[];
+let playing=false,paused=false,raf=null,animT=0,animStart=null;
+let manualMode=false,manualCfg=null,showGhosts=true,debugMode=false;
+let camRx=-0.42,camRy=0.55,camDist=320,dragSt=null,crx0,cry0;
+let speed=0.6;
+const canvas=$('c3d'),ctx=canvas.getContext('2d');
+
+// ================================================================
+//  UNITS / PRESETS / SPEED
+// ================================================================
+function setUnit(u){const f=(u==='cm'&&unit==='in')?2.54:(u==='in'&&unit==='cm')?1/2.54:1;unit=u;$('btnIn').classList.toggle('on',u==='in');$('btnCm').classList.toggle('on',u==='cm');document.querySelectorAll('.u').forEach(e=>e.textContent=u);if(f!==1)['doorW','doorH','doorOff','intW','intD','intH','slabL','slabW','slabT'].forEach(id=>{const e=$(id);e.value=+(parseFloat(e.value)*f).toFixed(2);});updateDoorMini();}
+function toIn(v){return unit==='cm'?v/2.54:v;}
+function fmt(v){return unit==='cm'?(v*2.54).toFixed(1)+' cm':v.toFixed(1)+'"';}
+function applyPreset(k){const p={std:{doorW:36,doorH:84,intW:68,intD:54,intH:96},freight:{doorW:60,doorH:96,intW:96,intD:84,intH:108},res:{doorW:32,doorH:80,intW:56,intD:48,intH:84},sm:{slabL:48,slabW:26,slabT:1.25},lg:{slabL:110,slabW:60,slabT:1.25}}[k];if(!p)return;const f=unit==='cm'?2.54:1;Object.entries(p).forEach(([id,v])=>{if($(id))$(id).value=+(v*f).toFixed(2);});$('presets').value='';}
+$('spdR').addEventListener('input',e=>{speed=parseFloat(e.target.value);$('spdL').textContent=speed.toFixed(1)+'×';});
+['kAttr','kRep','kMarg','kWig'].forEach(id=>{$(id).addEventListener('input',()=>{
+  $('kAttrV').textContent=parseFloat($('kAttr').value).toFixed(1);
+  $('kRepV').textContent=parseFloat($('kRep').value).toFixed(1);
+  $('kMargV').textContent=parseFloat($('kMarg').value).toFixed(1)+'"';
+  $('kWigV').textContent=parseFloat($('kWig').value).toFixed(1);
+});});
+
+// ================================================================
+//  DOOR OFFSET & MINI DIAGRAM
+// ================================================================
+function getDoorOffset(){return toIn(parseFloat($('doorOff').value)||0);}
+function centerDoorDefault(){
+  const iW=parseFloat($('intW').value)||0, dW=parseFloat($('doorW').value)||0;
+  $('doorOff').value=+((iW-dW)/2).toFixed(1);
+  updateDoorMini();
+}
+function updateDoorMini(){
+  const container=$('doorMini');
+  let c=container.querySelector('canvas');
+  if(!c){c=document.createElement('canvas');c.height=76;container.appendChild(c);}
+  const iW=parseFloat($('intW').value)||68;
+  const dW=parseFloat($('doorW').value)||36;
+  const off=parseFloat($('doorOff').value)||0;
+  const maxOff=max(0,iW-dW);
+  // Clamp offset
+  if(off<0)$('doorOff').value=0;
+  if(off>maxOff)$('doorOff').value=maxOff.toFixed(1);
+
+  const dpr=window.devicePixelRatio||1;
+  const cw=container.clientWidth||260;
+  c.width=cw*dpr;c.height=76*dpr;c.style.width=cw+'px';c.style.height='76px';
+  const cx=c.getContext('2d');
+  cx.setTransform(dpr,0,0,dpr,0,0);
+
+  // BG
+  cx.fillStyle='#101216';cx.fillRect(0,0,cw,76);
+
+  // Scale: fit elevator width into canvas with padding
+  const pad=12;
+  const sc=(cw-pad*2)/iW;
+  const y0=8,wallH=28,doorH=22;
+
+  // Elevator footprint (top-down)
+  const depth=parseFloat($('intD').value)||54;
+  const depthSc=depth*sc;
+  const footH=min(depthSc,40);
+  cx.fillStyle='#1a1d24';
+  cx.fillRect(pad,y0,iW*sc,footH);
+  cx.strokeStyle='#3a3f4d';cx.lineWidth=1.5;
+  cx.strokeRect(pad,y0,iW*sc,footH);
+
+  // Front wall
+  const fy=y0+footH;
+  // Left of door
+  const doorLx=pad+off*sc;
+  const doorRx=pad+(off+dW)*sc;
+  cx.strokeStyle='#5a6070';cx.lineWidth=2;
+  if(doorLx>pad+1){cx.beginPath();cx.moveTo(pad,fy);cx.lineTo(doorLx,fy);cx.stroke();}
+  if(doorRx<pad+iW*sc-1){cx.beginPath();cx.moveTo(doorRx,fy);cx.lineTo(pad+iW*sc,fy);cx.stroke();}
+
+  // Door gap
+  cx.strokeStyle='#c17f59';cx.lineWidth=2;cx.setLineDash([3,2]);
+  cx.beginPath();cx.moveTo(doorLx,fy);cx.lineTo(doorRx,fy);cx.stroke();
+  cx.setLineDash([]);
+
+  // Door jamb marks
+  cx.fillStyle='#c17f59';
+  cx.fillRect(doorLx-1,fy-4,2,8);
+  cx.fillRect(doorRx-1,fy-4,2,8);
+
+  // Labels
+  cx.font='400 9px "Space Mono",monospace';cx.textBaseline='top';
+  const leftGap=off;
+  const rightGap=iW-off-dW;
+  const uLabel=unit==='cm'?'cm':'"';
+
+  // Left gap
+  if(leftGap>0.5){
+    cx.fillStyle='#5a6070';cx.textAlign='center';
+    const lx=(pad+doorLx)/2;
+    cx.fillText((unit==='cm'?(leftGap*2.54).toFixed(0):leftGap.toFixed(0))+uLabel,lx,fy+4);
+  }
+  // Door width
+  cx.fillStyle='#c17f59';cx.textAlign='center';
+  cx.fillText((unit==='cm'?(dW*2.54).toFixed(0):dW.toFixed(0))+uLabel,(doorLx+doorRx)/2,fy+4);
+  // Right gap
+  if(rightGap>0.5){
+    cx.fillStyle='#5a6070';cx.textAlign='center';
+    const rx=(doorRx+pad+iW*sc)/2;
+    cx.fillText((unit==='cm'?(rightGap*2.54).toFixed(0):rightGap.toFixed(0))+uLabel,rx,fy+4);
+  }
+  // Elevator width label
+  cx.fillStyle='#3a3f4d';cx.textAlign='center';
+  cx.fillText((unit==='cm'?(iW*2.54).toFixed(0):iW.toFixed(0))+uLabel+' wide',pad+iW*sc/2,y0-1);
+}
+
+// Wire up door offset + dimension changes → update mini diagram
+['doorW','doorH','doorOff','intW','intD'].forEach(id=>{
+  $(id).addEventListener('input',updateDoorMini);
+});
+// Auto-center when interior width or door width changes
+['doorW','intW'].forEach(id=>{
+  $(id).addEventListener('change',centerDoorDefault);
+});
+// Init
+setTimeout(()=>{centerDoorDefault();updateDoorMini();},50);
+
+// ================================================================
+//  ROTATION MATH
+// ================================================================
+// Rotation matrix for Rz·Ry·Rx as flat [r00..r22]
+function rotMat(rx,ry,rz){
+  const sx=sin(rx),cx=cos(rx),sy=sin(ry),cy=cos(ry),sz=sin(rz),cz=cos(rz);
+  return[cy*cz,sx*sy*cz-cx*sz,cx*sy*cz+sx*sz,cy*sz,sx*sy*sz+cx*cz,cx*sy*sz-sx*cz,-sy,sx*cy,cx*cy];
+}
+function rApply(R,x,y,z){return[R[0]*x+R[1]*y+R[2]*z,R[3]*x+R[4]*y+R[5]*z,R[6]*x+R[7]*y+R[8]*z];}
+function rApplyT(R,x,y,z){return[R[0]*x+R[3]*y+R[6]*z,R[1]*x+R[4]*y+R[7]*z,R[2]*x+R[5]*y+R[8]*z];}
+
+// ================================================================
+//  CONFIGURATION SPACE (6DOF: x,y,z,rx,ry,rz)
+// ================================================================
+function aDiff(a,b){let d=b-a;while(d>PI)d-=2*PI;while(d<-PI)d+=2*PI;return d;}
+function cfgDiff(a,b){return[b[0]-a[0],b[1]-a[1],b[2]-a[2],aDiff(a[3],b[3]),aDiff(a[4],b[4]),aDiff(a[5],b[5])];}
+function cfgDist(a,b,w){const d=cfgDiff(a,b);return sqrt(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]+w*w*(d[3]*d[3]+d[4]*d[4]+d[5]*d[5]));}
+function cfgLerp(a,b,t){const d=cfgDiff(a,b);return[a[0]+d[0]*t,a[1]+d[1]*t,a[2]+d[2]*t,a[3]+d[3]*t,a[4]+d[4]*t,a[5]+d[5]*t];}
+function cfgNorm(d,w){return sqrt(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]+w*w*(d[3]*d[3]+d[4]*d[4]+d[5]*d[5]));}
+
+// ================================================================
+//  COLLISION DETECTION
+// ================================================================
+const EDGE_IDX=[[0,1],[0,2],[0,4],[1,3],[1,5],[2,3],[2,6],[3,7],[4,5],[4,6],[5,7],[6,7]];
+
+class Collider{
+  constructor(iW,iD,iH,dW,dH,doorOffset){
+    this.iW=iW;this.iD=iD;this.iH=iH;
+    // doorOffset = distance from left wall to left edge of door
+    const dOff=(doorOffset!==undefined)?doorOffset:(iW-dW)/2;
+    this.dL=dOff;this.dR=dOff+dW;this.dH_=dH;
+    // Wall rectangles: plane at axis=val, bounded by [lo1,hi1] on a1 and [lo2,hi2] on a2
+    const dL=this.dL,dR=this.dR;
+    this.walls=[
+      {ax:0,val:0,   a1:1,lo1:0,hi1:iH,a2:2,lo2:0,hi2:iD},   // left
+      {ax:0,val:iW,  a1:1,lo1:0,hi1:iH,a2:2,lo2:0,hi2:iD},   // right
+      {ax:1,val:iH,  a1:0,lo1:0,hi1:iW,a2:2,lo2:0,hi2:iD},   // ceiling
+      {ax:2,val:0,   a1:0,lo1:0,hi1:iW,a2:1,lo2:0,hi2:iH},   // back
+      {ax:2,val:iD,  a1:0,lo1:0,hi1:dL, a2:1,lo2:0,hi2:iH},  // front-L
+      {ax:2,val:iD,  a1:0,lo1:dR,hi1:iW,a2:1,lo2:0,hi2:iH},  // front-R
+      {ax:2,val:iD,  a1:0,lo1:dL,hi1:dR,a2:1,lo2:dH,hi2:iH}, // front-above
+    ];
+    // Wall edges to check vs slab OBB (door frame + elevator corners)
+    this.wEdges=[
+      [[dL,0,iD],[dL,dH,iD]],[[dR,0,iD],[dR,dH,iD]],[[dL,dH,iD],[dR,dH,iD]], // door frame
+      [[dL,dH,iD],[dL,iH,iD]],[[dR,dH,iD],[dR,iH,iD]], // above-door verticals
+      [[0,0,0],[0,iH,0]],[[iW,0,0],[iW,iH,0]],[[0,0,iD],[0,iH,iD]],[[iW,0,iD],[iW,iH,iD]], // corners
+      [[0,iH,0],[iW,iH,0]],[[0,iH,0],[0,iH,iD]],[[iW,iH,0],[iW,iH,iD]],[[0,iH,iD],[iW,iH,iD]], // ceiling edges
+      [[0,0,0],[iW,0,0]],[[0,0,0],[0,0,iD]],[[iW,0,0],[iW,0,iD]], // floor edges
+    ];
+  }
+
+  isFree(cfg,hx,hy,hz){
+    const R=rotMat(cfg[3],cfg[4],cfg[5]);
+    const cx=cfg[0],cy=cfg[1],cz=cfg[2];
+    const tol=0.08;
+    // Compute 8 corners
+    const c=[];
+    for(let sx=-1;sx<=1;sx+=2)for(let sy=-1;sy<=1;sy+=2)for(let sz=-1;sz<=1;sz+=2){
+      const[lx,ly,lz]=rApply(R,hx*sx,hy*sy,hz*sz);
+      const wy=cy+ly;
+      if(wy<-tol) return false; // below floor
+      c.push([cx+lx,wy,cz+lz]);
+    }
+    // Slab edges vs wall surfaces
+    for(let e=0;e<12;e++){
+      const a=c[EDGE_IDX[e][0]],b=c[EDGE_IDX[e][1]];
+      for(let wi=0;wi<this.walls.length;wi++){
+        const w=this.walls[wi];
+        const da=a[w.ax]-w.val, db=b[w.ax]-w.val;
+        if(da*db>=0) continue;
+        const t=da/(da-db);
+        const p1=a[w.a1]+t*(b[w.a1]-a[w.a1]);
+        const p2=a[w.a2]+t*(b[w.a2]-a[w.a2]);
+        if(p1>=w.lo1-tol&&p1<=w.hi1+tol&&p2>=w.lo2-tol&&p2<=w.hi2+tol) return false;
+      }
+    }
+    // Wall edges vs slab OBB
+    for(let i=0;i<this.wEdges.length;i++){
+      const ea=this.wEdges[i][0],eb=this.wEdges[i][1];
+      const ax=ea[0]-cx,ay=ea[1]-cy,az=ea[2]-cz;
+      const bx=eb[0]-cx,by=eb[1]-cy,bz=eb[2]-cz;
+      const la=rApplyT(R,ax,ay,az),lb=rApplyT(R,bx,by,bz);
+      if(this._segAABB(la,lb,hx+tol,hy+tol,hz+tol)) return false;
+    }
+    return true;
+  }
+
+  _segAABB(a,b,hx,hy,hz){
+    let tmin=0,tmax=1;const h=[hx,hy,hz];
+    for(let i=0;i<3;i++){
+      const d=b[i]-a[i];
+      if(abs(d)<1e-10){if(a[i]<-h[i]||a[i]>h[i])return false;continue;}
+      let t1=(-h[i]-a[i])/d,t2=(h[i]-a[i])/d;
+      if(t1>t2){const tmp=t1;t1=t2;t2=tmp;}
+      tmin=max(tmin,t1);tmax=min(tmax,t2);
+      if(tmin>tmax)return false;
+    }
+    return true;
+  }
+}
+
+// ================================================================
+//  GOAL & DOOR ORIENTATION FINDER
+// ================================================================
+function findOrientations(hx,hy,hz,maxX,maxY,maxZ){
+  // Sweep all 3 axes at 5° steps, return orientations where AABB fits
+  const DEG=PI/180,results=[];
+  for(let rx=0;rx<=90;rx+=5)for(let ry=0;ry<=90;ry+=5)for(let rz=0;rz<=90;rz+=5){
+    const R=rotMat(rx*DEG,ry*DEG,rz*DEG);
+    let mnx=1e9,mny=1e9,mnz=1e9,mxx=-1e9,mxy=-1e9,mxz=-1e9;
+    for(let sx=-1;sx<=1;sx+=2)for(let sy=-1;sy<=1;sy+=2)for(let sz=-1;sz<=1;sz+=2){
+      const[lx,ly,lz]=rApply(R,hx*sx,hy*sy,hz*sz);
+      mnx=min(mnx,lx);mny=min(mny,ly);mnz=min(mnz,lz);mxx=max(mxx,lx);mxy=max(mxy,ly);mxz=max(mxz,lz);
+    }
+    const bx=mxx-mnx,by=mxy-mny,bz=mxz-mnz;
+    if(bx<=maxX+0.1&&by<=maxY+0.1&&bz<=maxZ+0.1){
+      const margin=min(maxX-bx,maxY-by,maxZ-bz);
+      results.push({r:[rx*DEG,ry*DEG,rz*DEG],margin,mny,bx,by,bz});
+    }
+  }
+  results.sort((a,b)=>b.margin-a.margin);
+  return results;
+}
+
+function findGoalConfigs(iW,iD,iH,hx,hy,hz,collider){
+  const oris=findOrientations(hx,hy,hz,iW,iH,iD);
+  const goals=[];
+  for(const o of oris.slice(0,40)){
+    const cfg=[iW/2,-o.mny,iD/2,o.r[0],o.r[1],o.r[2]];
+    if(collider.isFree(cfg,hx,hy,hz)) goals.push({cfg,margin:o.margin,bb:{x:o.bx,y:o.by,z:o.bz}});
+    if(goals.length>=8) break;
+  }
+  return goals;
+}
+
+function findDoorOrientations(hx,hy,hz,doorW,doorH){
+  // Orientations where the slab cross-section in X,Y fits the door
+  return findOrientations(hx,hy,hz,doorW,doorH,1e6);
+}
+
+// ================================================================
+//  INSTALLER TECHNIQUE — keyframed real-world maneuver
+// ================================================================
+// The default strategy professional stone installers use:
+// Slab on edge, angled ~40° to the door, lead corner D in low-right,
+// sweep through, raise A toward ceiling, clear frame, settle inside.
+// ================================================================
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function slabExtent(R,hx,hy,hz){
+  let mnx=1e9,mny=1e9,mnz=1e9,mxx=-1e9,mxy=-1e9,mxz=-1e9;
+  for(let sx=-1;sx<=1;sx+=2)for(let sy=-1;sy<=1;sy+=2)for(let sz=-1;sz<=1;sz+=2){
+    const[lx,ly,lz]=rApply(R,hx*sx,hy*sy,hz*sz);
+    mnx=min(mnx,lx);mny=min(mny,ly);mnz=min(mnz,lz);mxx=max(mxx,lx);mxy=max(mxy,ly);mxz=max(mxz,lz);
+  }
+  return{mnx,mny,mnz,mxx,mxy,mxz};
+}
+
+// ================================================================
+//  TRAJECTORY-BASED MOTION ENGINE
+//  Pre-plans entire path as 6D spline BEFORE animation starts.
+//  Thinks like an experienced installer, not a reactive robot.
+// ================================================================
+
+// ── PERLIN NOISE (organic micro-variation) ──
+const _perlinP=(function(){const p=[];for(let i=0;i<256;i++)p[i]=i;
+  for(let i=255;i>0;i--){const j=floor(random()*(i+1));[p[i],p[j]]=[p[j],p[i]];}
+  return p.concat(p);})();
+function _perlinFade(t){return t*t*t*(t*(t*6-15)+10);}
+function _perlinGrad(h,x){return(h&1)?-x:x;}
+function perlin1D(x){const xi=floor(x)&255;const xf=x-floor(x);const u=_perlinFade(xf);
+  return _perlinGrad(_perlinP[_perlinP[xi]],xf)*(1-u)+_perlinGrad(_perlinP[_perlinP[xi+1]],xf-1)*u;}
+
+// ── CATMULL-ROM SPLINE in 6D ──
+// Evaluates a Catmull-Rom spline segment between points P1 and P2
+// with tangent guidance from P0 and P3. t in [0,1].
+function catmullRom(p0,p1,p2,p3,t){
+  const t2=t*t, t3=t2*t;
+  const out=new Array(6);
+  for(let i=0;i<6;i++){
+    // Use angle-aware values for rotation channels (indices 3,4,5)
+    let v0=p0[i], v1=p1[i], v2=p2[i], v3=p3[i];
+    if(i>=3){
+      // Unwrap angles so interpolation doesn't jump across ±PI
+      while(v1-v0> PI) v0+=2*PI; while(v1-v0<-PI) v0-=2*PI;
+      while(v2-v1> PI) v2-=2*PI; while(v2-v1<-PI) v2+=2*PI;
+      while(v3-v2> PI) v3-=2*PI; while(v3-v2<-PI) v3+=2*PI;
+    }
+    out[i] = 0.5*(
+      (2*v1) +
+      (-v0+v2)*t +
+      (2*v0-5*v1+4*v2-v3)*t2 +
+      (-v0+3*v1-3*v2+v3)*t3
+    );
+  }
+  return out;
+}
+
+// Evaluate full spline: controlPoints array, t in [0, 1]
+function evalSpline(cps, t){
+  const n=cps.length-1; // number of segments = n
+  if(n<1) return cps[0].slice();
+  const rawT=max(0,min(1,t))*n;
+  const seg=min(floor(rawT),n-1);
+  const localT=rawT-seg;
+  const p0=cps[max(0,seg-1)];
+  const p1=cps[seg];
+  const p2=cps[min(seg+1,n)];
+  const p3=cps[min(seg+2,n)];
+  return catmullRom(p0,p1,p2,p3,localT);
+}
+
+// ── STRATEGY SELECTION ──
+// Analyzes dimensions and picks which installer strategies apply
+function selectStrategies(sL,sW,sT,dW,dH,iW,iD,iH,doorOffset){
+  const strats=[];
+  // DEEP FIRST: always push leading end deep before rising
+  if(sL > iD*0.7) strats.push('DEEP_FIRST');
+  // FLOOR ANCHOR PIVOT: use floor corner as pivot fulcrum
+  if(sL > dH*0.85) strats.push('FLOOR_ANCHOR_PIVOT');
+  // DIAGONAL THREADING: angle slab for max diagonal through door
+  if(sW > dW*0.8) strats.push('DIAGONAL_THREADING');
+  // CEILING SCRAPE: tilt parallel to ceiling when height is tight
+  if(sL > iH*0.85) strats.push('CEILING_SCRAPE');
+  // OFFSET DOOR COMPENSATION: bias toward side with more room
+  const doorCenterX=doorOffset+dW/2;
+  if(abs(doorCenterX-iW/2) > iW*0.05) strats.push('OFFSET_COMPENSATION');
+  // TWO-STAGE ENTRY: very long slabs
+  if(sL > iD*0.9) strats.push('TWO_STAGE');
+  // Default if nothing triggered
+  if(strats.length===0) strats.push('DEEP_FIRST');
+  return strats;
+}
+
+// ── CONTROL POINT PLACEMENT ──
+// Places CP0-CP5 based on geometry and selected strategies
+function placeControlPoints(hx,hy,hz,collider,goalCfg,strategies){
+  const {iW,iD,iH,dL,dR,dH_}=collider;
+  const dW=dR-dL;
+  const doorCX=dL+dW/2;
+  const sL=hx*2, sW=hz*2, sT=hy*2;
+
+  // Which side has more room behind the door?
+  const leftRoom=dL;
+  const rightRoom=iW-dR;
+  const biasSide=leftRoom>=rightRoom?-1:1; // -1=bias left, 1=bias right
+
+  // Entry yaw angle: angled to thread through door
+  const usesDiagonal=strategies.includes('DIAGONAL_THREADING');
+  let entryYaw=Math.atan2(iD,dW)*0.65;
+  if(usesDiagonal) entryYaw=Math.atan2(iD,dW)*0.8;
+  entryYaw*=biasSide;
+
+  // Entry pitch: slight downward tilt on leading end
+  const entryPitch=-0.08; // ~5°
+
+  // Roll: slab on edge if it helps fit through door
+  let entryRoll=0;
+  if(sW>dW*0.7 && sT<sW) entryRoll=PI/2*0.85; // rotate to present thin face to door
+
+  // CP0 — START: outside door, angled, bottom-leading
+  const startExt=slabExtent(rotMat(entryRoll,entryYaw,entryPitch),hx,hy,hz);
+  const cp0=[
+    doorCX + biasSide*dW*0.15,
+    -startExt.mny + 0.2,
+    iD + startExt.mxz + 6,
+    entryRoll, entryYaw, entryPitch
+  ];
+
+  // CP1 — THROAT ENTRY: leading corner crosses threshold
+  const cp1Yaw=entryYaw*0.9;
+  const cp1Ext=slabExtent(rotMat(entryRoll,cp1Yaw,entryPitch*1.5),hx,hy,hz);
+  const cp1=[
+    doorCX + biasSide*dW*0.1,
+    -cp1Ext.mny + 0.2,
+    iD - abs(cp1Ext.mnz)*0.3,
+    entryRoll, cp1Yaw, entryPitch*1.5
+  ];
+
+  // CP2 — MAXIMUM PENETRATION: deep before any rise
+  const deepFrac=strategies.includes('DEEP_FIRST')?0.85:0.7;
+  const cp2Yaw=entryYaw*0.75;
+  const cp2Ext=slabExtent(rotMat(entryRoll,cp2Yaw,0),hx,hy,hz);
+  const cp2=[
+    doorCX + biasSide*dW*0.05,
+    -cp2Ext.mny + 0.3,
+    iD*deepFrac - abs(cp2Ext.mnz),
+    entryRoll, cp2Yaw, 0
+  ];
+
+  // CP3 — THE PIVOT: anchor deep corner, rise trailing end
+  const usesPivot=strategies.includes('FLOOR_ANCHOR_PIVOT');
+  let pivotPitch=0;
+  if(usesPivot){
+    // How much pitch needed to clear door frame?
+    // More pitch = trailing end rises higher
+    pivotPitch=min(PI/4, Math.atan2(iH*0.6, sL*0.5));
+  }else{
+    pivotPitch=min(PI/6, Math.atan2(iH*0.4, sL*0.5));
+  }
+  const cp3Yaw=entryYaw*0.4;
+  const cp3Roll=entryRoll*0.5; // gradually unwinding roll
+  const cp3Ext=slabExtent(rotMat(cp3Roll,cp3Yaw,pivotPitch),hx,hy,hz);
+  const cp3=[
+    doorCX,
+    -cp3Ext.mny + 0.3,
+    iD*0.5,
+    cp3Roll, cp3Yaw, pivotPitch
+  ];
+
+  // CP4 — DOOR CLEARANCE: all corners inside, still tilted
+  const cp4Pitch=pivotPitch*0.5;
+  const cp4Yaw=entryYaw*0.15;
+  const cp4Roll=entryRoll*0.2;
+  const cp4Ext=slabExtent(rotMat(cp4Roll,cp4Yaw,cp4Pitch),hx,hy,hz);
+  const cp4=[
+    iW/2,
+    -cp4Ext.mny + 0.2,
+    iD*0.45,
+    cp4Roll, cp4Yaw, cp4Pitch
+  ];
+
+  // CP5 — SETTLE: final rest position (from goalCfg)
+  const cp5=goalCfg.slice();
+
+  return [cp0, cp1, cp2, cp3, cp4, cp5];
+}
+
+// ── CURVE VALIDATION ──
+// Sample spline at N points, return collision info
+function validateCurve(cps, collider, hx, hy, hz, samples){
+  const collisions=[];
+  for(let i=0;i<=samples;i++){
+    const t=i/samples;
+    const cfg=evalSpline(cps, t);
+    cfg[1]=max(cfg[1],0.1);
+    if(!collider.isFree(cfg,hx,hy,hz)){
+      collisions.push({t, cfg, sampleIdx:i});
+    }
+  }
+  return collisions;
+}
+
+// ── CURVE ADJUSTMENT ──
+// Lightweight: only nudge the single worst collision per iteration
+function adjustCurve(cps, collider, hx, hy, hz, maxIter){
+  const samples=80; // fast validation
+  for(let iter=0;iter<maxIter;iter++){
+    const hits=validateCurve(cps,collider,hx,hy,hz,samples);
+    if(hits.length===0) return true;
+
+    // Pick the first collision only (don't loop all)
+    const hit=hits[0];
+    const n=cps.length;
+    const cpIdx=max(1,min(n-2, Math.round(hit.t*(n-1))));
+
+    // Try nudges — fewer, larger steps
+    const nudges=[
+      [0,2,0,0,0,0],[0,-2,0,0,0,0],       // Y
+      [2,0,0,0,0,0],[-2,0,0,0,0,0],       // X
+      [0,0,2,0,0,0],[0,0,-2,0,0,0],       // Z
+      [0,0,0,0,0.1,0],[0,0,0,0,-0.1,0],   // yaw
+      [0,0,0,0,0,0.1],[0,0,0,0,0,-0.1],   // pitch
+      [0,0,0,0.1,0,0],[0,0,0,-0.1,0,0],   // roll
+    ];
+
+    let bestNudge=null, bestScore=hits.length;
+    const origCP=cps[cpIdx].slice();
+    for(const nudge of nudges){
+      cps[cpIdx]=origCP.map((v,i)=>v+nudge[i]);
+      const testHits=validateCurve(cps,collider,hx,hy,hz,samples);
+      if(testHits.length<bestScore){
+        bestScore=testHits.length;
+        bestNudge=cps[cpIdx].slice();
+      }
+    }
+    cps[cpIdx]=bestNudge||origCP;
+  }
+  return validateCurve(cps,collider,hx,hy,hz,samples).length===0;
+}
+
+// ── PHASE LABELS ──
+const PHASE_NAMES=['APPROACH','THROAT','DEEP PENETRATION','PIVOT','CLEARANCE','SETTLE'];
+function getPhase(t, numCPs){
+  const seg=min(floor(t*(numCPs-1)), numCPs-2);
+  return {name: PHASE_NAMES[min(seg, PHASE_NAMES.length-1)], index: seg};
+}
+
+// ── MOTION SMOOTHING ──
+let _smoothVel=[0,0,0,0,0,0];
+function smoothState(cfg, prevCfg, t){
+  if(!prevCfg) return cfg;
+  const smoothed=new Array(6);
+  const alpha=0.85; // low-pass filter strength
+  for(let i=0;i<6;i++){
+    const rawVel=cfg[i]-prevCfg[i];
+    _smoothVel[i]=_smoothVel[i]*alpha+rawVel*(1-alpha);
+    smoothed[i]=prevCfg[i]+_smoothVel[i];
+  }
+  // Apply Perlin noise for organic micro-variation
+  const noiseAmp=0.008; // ~0.5° in radians
+  const noiseFreq=0.3;
+  smoothed[3]+=perlin1D(t*noiseFreq*60)*noiseAmp;
+  smoothed[4]+=perlin1D(t*noiseFreq*60+100)*noiseAmp;
+  smoothed[5]+=perlin1D(t*noiseFreq*60+200)*noiseAmp;
+  return smoothed;
+}
+
+// ── EASING for animation speed ──
+function animEase(t){
+  // Slow start, slow through pivot, fast settle
+  // S-curve with slower middle (pivot phase)
+  if(t<0.1) return t*t*50; // ease in
+  if(t>0.85) return 1-(1-t)*(1-t)*44.4; // ease out
+  // Middle: slightly slower through pivot zone (t≈0.4-0.6)
+  const mid=0.5, spread=0.15;
+  const pivotSlow=1-0.3*Math.exp(-((t-mid)*(t-mid))/(2*spread*spread));
+  return t*pivotSlow+(1-pivotSlow)*t;
+}
+
+// ── ORIGINAL REACTIVE CONTROLLER (proven, battle-tested) ──
+function slabProbes(hx,hy,hz){
+  const p=[];
+  for(let sx=-1;sx<=1;sx+=2)for(let sy=-1;sy<=1;sy+=2)for(let sz=-1;sz<=1;sz+=2)
+    p.push([hx*sx,hy*sy,hz*sz]);
+  for(let sx=-1;sx<=1;sx+=2)for(let sy=-1;sy<=1;sy+=2) p.push([hx*sx,hy*sy,0]);
+  for(let sx=-1;sx<=1;sx+=2)for(let sz=-1;sz<=1;sz+=2) p.push([hx*sx,0,hz*sz]);
+  for(let sy=-1;sy<=1;sy+=2)for(let sz=-1;sz<=1;sz+=2) p.push([0,hy*sy,hz*sz]);
+  return p;
+}
+
+function addAttractiveForce(delta,cur,goal,kA){
+  const d=cfgDiff(cur,goal);
+  const mag=cfgNorm(d,30);
+  const scale=kA*0.4/(mag+0.1);
+  delta[0]+=d[0]*scale;delta[1]+=d[1]*scale;delta[2]+=d[2]*scale;
+  const rotScale=scale*2.5;
+  delta[3]+=d[3]*rotScale;delta[4]+=d[4]*rotScale;delta[5]+=d[5]*rotScale;
+}
+
+function addWallRepulsion(delta,cur,probesList,collider,hx,hy,hz,kR,margin,debugVecs){
+  const R=rotMat(cur[3],cur[4],cur[5]);
+  let minDist=1e9;
+  for(const pr of probesList){
+    const[rx,ry,rz]=rApply(R,pr[0],pr[1],pr[2]);
+    const wx=cur[0]+rx, wy=cur[1]+ry, wz=cur[2]+rz;
+    const surfaces=[[wy,0,1,0],[collider.iH-wy,0,-1,0],[wx,1,0,0],[collider.iW-wx,-1,0,0],[wz,0,0,1]];
+    const inDoorX=wx>=collider.dL&&wx<=collider.dR;
+    const inDoorY=wy>=0&&wy<=collider.dH_;
+    if(!(inDoorX&&inDoorY)) surfaces.push([collider.iD-wz,0,0,-1]);
+    if(wy<collider.dH_&&abs(wz-collider.iD)<5){
+      if(wx>collider.dL-6&&wx<collider.dR) surfaces.push([wx-collider.dL,1,0,0]);
+      if(wx<collider.dR+6&&wx>collider.dL) surfaces.push([collider.dR-wx,-1,0,0]);
+    }
+    if(inDoorX&&abs(wz-collider.iD)<5) surfaces.push([collider.dH_-wy,0,-1,0]);
+    for(const[d,nx,ny,nz] of surfaces){
+      if(d<margin&&d>-3){
+        const dm=max(d,0.03);minDist=min(minDist,dm);
+        const forceMag=kR*0.4/(dm*dm);
+        const fx=nx*forceMag, fy=ny*forceMag, fz=nz*forceMag;
+        delta[0]+=fx;delta[1]+=fy;delta[2]+=fz;
+        const tScale=0.015;
+        delta[3]+=(ry*fz-rz*fy)*tScale;
+        delta[4]+=(rz*fx-rx*fz)*tScale;
+        delta[5]+=(rx*fy-ry*fx)*tScale;
+        if(debugMode&&d<margin*0.7&&debugVecs) debugVecs.push({wx,wy,wz,nx:fx,ny:fy,nz:fz});
+      }
+    }
+  }
+  return minDist;
+}
+
+function addWiggle(delta,stuckCount,wigK,wigBase){
+  if(stuckCount<30||wigK<=0) return wigBase;
+  const strength=wigBase*(1+stuckCount*0.03);
+  delta[0]+=(random()-0.5)*strength*1.5;
+  delta[1]+=(random()-0.5)*strength*0.8;
+  delta[2]+=(random()-0.5)*strength*1.5;
+  delta[3]+=(random()-0.5)*strength*0.03;
+  delta[4]+=(random()-0.5)*strength*0.03;
+  delta[5]+=(random()-0.5)*strength*0.03;
+  return strength;
+}
+
+function reactiveStep(cur,goalCfg,collider,hx,hy,hz,probesList,stuckCount){
+  const kA=parseFloat($('kAttr').value);
+  const kR=parseFloat($('kRep').value);
+  const margin=parseFloat($('kMarg').value);
+  const wigK=parseFloat($('kWig').value);
+  const delta=[0,0,0,0,0,0];
+  const debugVecs=debugMode?[]:null;
+  addAttractiveForce(delta, cur, goalCfg, kA);
+  const minD0=addWallRepulsion(delta, cur, probesList, collider, hx,hy,hz, kR, margin, debugVecs);
+  for(const la of [2,4]){
+    const proj=cur.map((v,i)=>v+delta[i]*la*0.3);
+    proj[1]=max(0.1,proj[1]);
+    addWallRepulsion(delta, proj, probesList, collider, hx,hy,hz, kR*0.5, margin, debugVecs);
+  }
+  addWiggle(delta, stuckCount, wigK, wigK*0.35);
+  const maxT=2.0, maxR=0.09;
+  for(let i=0;i<3;i++) delta[i]=max(-maxT,min(maxT,delta[i]));
+  for(let i=3;i<6;i++) delta[i]=max(-maxR,min(maxR,delta[i]));
+  let next=null;
+  for(let scale=1;scale>=0.03125;scale*=0.5){
+    const candidate=[cur[0]+delta[0]*scale,max(0.1,cur[1]+delta[1]*scale),cur[2]+delta[2]*scale,
+      cur[3]+delta[3]*scale,cur[4]+delta[4]*scale,cur[5]+delta[5]*scale];
+    if(collider.isFree(candidate,hx,hy,hz)){next=candidate;break;}
+  }
+  const w=max(collider.iW,collider.iD,collider.iH)/PI;
+  const gd=cfgDist(cur,goalCfg,w);
+  const avoidWeight=1-min(1,max(0,(minD0-0.2)/margin));
+  return{next, gd, avoidWeight, worstMinDist:minD0,
+    guidanceVec:[delta[0],delta[1],delta[2],0,0,0], finalVec:delta, debugVecs:debugVecs||[]};
+}
+
+// Compute carry start from solved trajectory
+function computeCarryStart(hx,hy,hz,doorOris,collider){
+  const doorCX=collider.dL+(collider.dR-collider.dL)/2;
+  for(const o of doorOris.slice(0,20)){
+    const R=rotMat(o.r[0],o.r[1],o.r[2]);
+    const ext=slabExtent(R,hx,hy,hz);
+    const cfg=[doorCX,-ext.mny,collider.iD+ext.mxz+3,o.r[0],o.r[1],o.r[2]];
+    if(collider.isFree(cfg,hx,hy,hz)) return cfg;
+  }
+  return[doorCX,hy,collider.iD+max(hx,hz)+8,0,0,0];
+}
+
+// Trajectory simulation state
+let liveSim=null; // {path, controlPoints, strategies, t, done, fail, prevCfg}
+let trajResult=null; // result from solveTrajectory
+
+function toggleDebug(){
+  debugMode=!debugMode;
+  $('btnDebug').classList.toggle('act',debugMode);
+  $('showDebug').checked=debugMode;
+}
+$('showDebug').addEventListener('change',e=>{
+  debugMode=e.target.checked;
+  $('btnDebug').classList.toggle('act',debugMode);
+  redrawStatic();
+});
+
+// runSim is defined below
+
+function finishSim(hasPath){
+  $('goBtn').disabled=false;$('goBtn').textContent='Run Simulation';
+  renderResults();
+  if(!hasPath){resizeCanvas();drawEmpty();}
+}
+
+// ================================================================
+//  RESULTS
+// ================================================================
+function renderResults(){
+  $('emptyMsg').style.display='none';
+  const rg=$('rg');rg.style.display='grid';rg.innerHTML='';
+  const s=sim,r=s.result;
+  const add=(pass,t,d)=>{rg.innerHTML+=`<div class="ri ${pass?'pass':'fail'}"><span class="ico">${pass?'✅':'❌'}</span><div class="txt"><strong>${t}</strong><span class="d">${d}</span></div></div>`;};
+
+  if(r.ok){
+    add(true,'Door Clearance — PASS',`${s.doorOris.length} valid door orientations found`);
+    add(true,'6DOF Path — SOLVED',`${r.method} · ${r.path.length} waypoints`);
+    const g=s.goalCfgs[0];
+    add(true,'Interior Fit — PASS',`Resting: ${fmt(g.bb.x)} × ${fmt(g.bb.z)} × ${fmt(g.bb.y)} H · margin ${fmt(g.margin)}`);
+  }else{
+    if(r.reason==='door')add(false,'Door — FAIL',r.msg);
+    else if(r.reason==='interior')add(false,'Interior — FAIL',r.msg);
+    else{
+      add(true,'Door — PASS',`${s.doorOris.length} orientations fit`);
+      add(true,'Interior — PASS',`${s.goalCfgs.length} resting configs fit`);
+      add(false,'6DOF Path — FAIL',r.msg);
+    }
+  }
+  const sd3=sqrt(s.sL**2+s.sW**2+s.sT**2),ed3=sqrt(s.iW**2+s.iD**2+s.iH**2);
+  add(sd3<=ed3,'3D Diagonal',`Slab: ${fmt(sd3)} — Elevator: ${fmt(ed3)}`);
+
+  const tip=$('tipBox');
+  if(!r.ok){
+    let t='';
+    if(r.reason==='door')t='Slab cannot fit through the door in any 3-axis orientation. Requires a wider/taller door or freight elevator.';
+    else if(r.reason==='interior')t='Slab passes through the door but is too large for the cabin. Try a freight elevator.';
+    else t='Both door and interior have valid orientations, but no collision-free 6DOF path exists to maneuver the slab from outside to inside. The cabin may be too tight for the pivot. Try a freight elevator.';
+    tip.innerHTML='<strong>💡 Tip:</strong> '+t;tip.style.display='block';
+  }else tip.style.display='none';
+}
+
+function doExport(){
+  if(!sim||!sim.result){alert('Run simulation first.');return;}
+  const s=sim,r=s.result;
+  let t=`SLAB ELEVATOR FIT SIMULATOR — 6DOF\n${'='.repeat(42)}\n${new Date().toLocaleDateString()}\n\nELEVATOR: ${fmt(s.iW)} W × ${fmt(s.iD)} D × ${fmt(s.iH)} H\nDOOR: ${fmt(s.dW)} W × ${fmt(s.dH)} H\nSLAB: ${fmt(s.sL)} × ${fmt(s.sW)} × ${fmt(s.sT)}\n\nVERDICT: ${r.ok?'FITS':'DOES NOT FIT'}\n`;
+  if(r.ok)t+=`Method: ${r.method}\nPath waypoints: ${r.path.length}\n`;
+  else t+=`Reason: ${r.msg||r.reason}\n`;
+  const b=new Blob([t],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='slab-results.txt';a.click();
+}
+
+// ================================================================
+//  3D RENDERER
+// ================================================================
+function project(x,y,z){
+  let x1=x*cos(camRy)-z*sin(camRy),z1=x*sin(camRy)+z*cos(camRy);
+  let y1=y*cos(camRx)-z1*sin(camRx),z2=y*sin(camRx)+z1*cos(camRx);
+  z2+=camDist;const fov=600,sc=fov/(z2>1?z2:1);
+  return{sx:x1*sc,sy:-y1*sc,z:z2};
+}
+function faceZ(pts){let s=0;for(const p of pts)s+=project(p[0],p[1],p[2]).z;return s/pts.length;}
+function drawFace(pts,fill,stroke,lw){
+  const pr=pts.map(p=>project(p[0],p[1],p[2]));
+  ctx.beginPath();pr.forEach((p,i)=>i===0?ctx.moveTo(p.sx,p.sy):ctx.lineTo(p.sx,p.sy));ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+function drawLine3D(ax,ay,az,bx,by,bz){const a=project(ax,ay,az),b=project(bx,by,bz);ctx.beginPath();ctx.moveTo(a.sx,a.sy);ctx.lineTo(b.sx,b.sy);ctx.stroke();}
+function drawLabel3D(x,y,z,text,color,size){const p=project(x,y,z);ctx.fillStyle=color||'#aaa';ctx.font=(size||10)+'px "Space Mono",monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,p.sx,p.sy);}
+
+function slabFaces(cfg,hx,hy,hz,vs,fill,stroke,lw,tag){
+  const R=rotMat(cfg[3],cfg[4],cfg[5]);
+  const cx=(cfg[0]-sim.iW/2)*vs, cy=cfg[1]*vs, cz=(cfg[2]-sim.iD/2)*vs;
+  const Hx=hx*vs,Hy=max(hy*vs,1.5),Hz=hz*vs;
+  function pt(lx,ly,lz){const[rx,ry,rz]=rApply(R,lx,ly,lz);return[cx+rx,cy+ry,cz+rz];}
+  const faces=[];
+  const q=[ // 6 faces: [corner indices as dx,dy,dz signs]
+    [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1]], // -Z
+    [[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]],     // +Z
+    [[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]], // -Y
+    [[-1,1,-1],[1,1,-1],[1,1,1],[-1,1,1]],     // +Y (top)
+    [[-1,-1,-1],[-1,1,-1],[-1,1,1],[-1,-1,1]], // -X
+    [[1,-1,-1],[1,1,-1],[1,1,1],[1,-1,1]],      // +X
+  ];
+  for(let fi=0;fi<6;fi++){
+    const f=q[fi].map(s=>pt(Hx*s[0],Hy*s[1],Hz*s[2]));
+    faces.push({pts:f,fill:fi===3?fill:stroke,stroke:stroke,lw:lw,tag:fi===3?tag:''});
+  }
+  return faces;
+}
+
+function drawScene(currentCfg,ghosts,collision,debugInfo){
+  const s=sim;
+  const dpr=window.devicePixelRatio||1;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const cw=canvas.width/dpr,ch=canvas.height/dpr;
+
+  // BG
+  const bg=ctx.createRadialGradient(cw/2,ch/2,0,cw/2,ch/2,cw*.7);
+  bg.addColorStop(0,'#12141a');bg.addColorStop(1,'#0a0b0e');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,cw,ch);
+  ctx.save();ctx.translate(cw/2,ch/2);
+
+  const maxD=max(s.iW,s.iD,s.iH,s.sL)*1.2;
+  const vs=min(cw,ch)*0.24/maxD;
+  const ew=s.iW*vs,ed=s.iD*vs,eh=s.iH*vs;
+  const ox=-ew/2,oz=-ed/2;
+  // Door left/right edges in view-space (using collider dL/dR, not centered)
+  const dLx=ox+s.collider.dL*vs;  // left jamb X in view coords
+  const dRx=ox+s.collider.dR*vs;  // right jamb X in view coords
+  const dt=s.dH*vs,fz=oz+ed;
+
+  const faces=[];
+  // Elevator faces
+  faces.push({pts:[[ox,0,oz],[ox+ew,0,oz],[ox+ew,0,fz],[ox,0,fz]],fill:'rgba(40,44,55,0.85)',stroke:'#4a5060',lw:1.5});
+  faces.push({pts:[[ox,0,oz],[ox+ew,0,oz],[ox+ew,eh,oz],[ox,eh,oz]],fill:'rgba(60,63,78,0.3)',stroke:'rgba(100,105,125,0.7)',lw:1.5});
+  faces.push({pts:[[ox,0,oz],[ox,0,fz],[ox,eh,fz],[ox,eh,oz]],fill:'rgba(55,58,73,0.3)',stroke:'rgba(100,105,125,0.7)',lw:1.5});
+  faces.push({pts:[[ox+ew,0,oz],[ox+ew,0,fz],[ox+ew,eh,fz],[ox+ew,eh,oz]],fill:'rgba(55,58,73,0.3)',stroke:'rgba(100,105,125,0.7)',lw:1.5});
+  // Front wall: left section, right section, above door
+  if(dLx>ox+1) faces.push({pts:[[ox,0,fz],[dLx,0,fz],[dLx,eh,fz],[ox,eh,fz]],fill:'rgba(60,63,78,0.3)',stroke:'rgba(100,105,125,0.7)',lw:1.5});
+  if(dRx<ox+ew-1) faces.push({pts:[[dRx,0,fz],[ox+ew,0,fz],[ox+ew,eh,fz],[dRx,eh,fz]],fill:'rgba(60,63,78,0.3)',stroke:'rgba(100,105,125,0.7)',lw:1.5});
+  if(dt<eh-1) faces.push({pts:[[dLx,dt,fz],[dRx,dt,fz],[dRx,eh,fz],[dLx,eh,fz]],fill:'rgba(60,63,78,0.3)',stroke:'rgba(100,105,125,0.7)',lw:1.5});
+  faces.push({pts:[[ox,eh,oz],[ox+ew,eh,oz],[ox+ew,eh,fz],[ox,eh,fz]],fill:'rgba(50,53,68,0.12)',stroke:'rgba(80,85,100,0.3)',lw:.5});
+  // Door floor glow
+  faces.push({pts:[[dLx,.3,fz-1],[dRx,.3,fz-1],[dRx,.3,fz+6*vs],[dLx,.3,fz+6*vs]],fill:'rgba(193,127,89,0.1)',stroke:'rgba(193,127,89,0.2)',lw:.5});
+
+  // Ghost trail
+  if(ghosts)for(const g of ghosts){
+    faces.push(...slabFaces(g,s.hx,s.hy,s.hz,vs,'rgba(80,140,210,0.06)','rgba(80,140,210,0.03)',.5,''));
+  }
+
+  // Current slab
+  if(currentCfg){
+    const cf=collision?'rgba(231,76,60,0.6)':'rgba(215,200,175,0.88)';
+    const cs=collision?'rgba(200,60,50,0.45)':'rgba(180,165,130,0.65)';
+    const clw=collision?1.5:1.2;
+    faces.push(...slabFaces(currentCfg,s.hx,s.hy,s.hz,vs,cf,cs,clw,'slabTop'));
+  }
+
+  // Painter sort + draw
+  faces.sort((a,b)=>faceZ(b.pts)-faceZ(a.pts));
+  for(const f of faces){
+    drawFace(f.pts,f.fill,f.stroke,f.lw);
+    if(f.tag==='slabTop'&&!collision){
+      const pr=f.pts.map(p=>project(p[0],p[1],p[2]));
+      ctx.save();ctx.beginPath();pr.forEach((p,i)=>i===0?ctx.moveTo(p.sx,p.sy):ctx.lineTo(p.sx,p.sy));ctx.closePath();ctx.clip();
+      ctx.strokeStyle='rgba(170,155,120,0.2)';ctx.lineWidth=1;
+      const mx=(a,b,t)=>({sx:a.sx+(b.sx-a.sx)*t,sy:a.sy+(b.sy-a.sy)*t});
+      ctx.beginPath();const v1=mx(pr[0],pr[3],.3),v2=mx(pr[0],pr[2],.5),v3=mx(pr[1],pr[2],.4);
+      ctx.moveTo(v1.sx,v1.sy);ctx.quadraticCurveTo(v2.sx,v2.sy,v3.sx,v3.sy);ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // Labels
+  drawLabel3D(0,-6*vs,oz-5*vs,fmt(s.iW),'#8899aa',10);
+  drawLabel3D(ox-6*vs,-4*vs,0,fmt(s.iD),'#8899aa',10);
+  drawLabel3D(ox-5*vs,eh/2,oz-3*vs,fmt(s.iH),'#8899aa',10);
+  const doorMidX=(dLx+dRx)/2;
+  drawLabel3D(doorMidX,-4*vs,fz+8*vs,'DOOR '+fmt(s.dW)+' × '+fmt(s.dH),'#c17f59',10);
+
+  // Door frame dashes
+  ctx.strokeStyle='rgba(193,127,89,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  drawLine3D(dLx,0,fz,dLx,dt,fz);drawLine3D(dRx,0,fz,dRx,dt,fz);drawLine3D(dLx,dt,fz,dRx,dt,fz);
+  ctx.setLineDash([]);
+
+  // Slab label
+  if(currentCfg){
+    const R=rotMat(currentCfg[3],currentCfg[4],currentCfg[5]);
+    const[_,ly]=rApply(R,0,max(s.hy*vs,1.5)+5*vs,0);
+    const scx=(currentCfg[0]-s.iW/2)*vs,scy=currentCfg[1]*vs+ly,scz=(currentCfg[2]-s.iD/2)*vs;
+    drawLabel3D(scx,scy,scz,`SLAB ${fmt(s.sL)}×${fmt(s.sW)}×${fmt(s.sT)}`,collision?'#e74c3c':'#c9b896',9);
+    // Rotation readout
+    const rxD=currentCfg[3]*180/PI,ryD=currentCfg[4]*180/PI,rzD=currentCfg[5]*180/PI;
+    const parts=[];
+    if(abs(rxD)>1)parts.push(`tilt ${rxD.toFixed(0)}°`);
+    if(abs(ryD)>1)parts.push(`turn ${ryD.toFixed(0)}°`);
+    if(abs(rzD)>1)parts.push(`roll ${rzD.toFixed(0)}°`);
+    if(parts.length) drawLabel3D(scx,scy+8,scz,parts.join(' · '),'#887766',8);
+  }
+
+  if(collision){
+    ctx.fillStyle='rgba(231,76,60,0.95)';ctx.font='bold 15px "DM Sans",sans-serif';ctx.textAlign='center';
+    ctx.fillText('⚠ DOES NOT FIT — closest attempt shown',0,ch/2-30);
+  }
+
+  // Debug overlay: repulsive force vectors + guidance arrow
+  if(debugInfo&&debugMode&&currentCfg){
+    const vs2=vs;
+    // Red: repulsive force vectors on corners
+    ctx.strokeStyle='rgba(231,76,60,0.7)';ctx.lineWidth=1.5;
+    for(const v of (debugInfo.debugVecs||[])){
+      const p1=project((v.wx-s.iW/2)*vs2,v.wy*vs2,(v.wz-s.iD/2)*vs2);
+      const p2=project((v.wx-s.iW/2+v.nx*3)*vs2,(v.wy+v.ny*3)*vs2,(v.wz-s.iD/2+v.nz*3)*vs2);
+      ctx.beginPath();ctx.moveTo(p1.sx,p1.sy);ctx.lineTo(p2.sx,p2.sy);ctx.stroke();
+      ctx.fillStyle='rgba(231,76,60,0.9)';ctx.beginPath();ctx.arc(p1.sx,p1.sy,2,0,PI*2);ctx.fill();
+    }
+    // Green: guidance direction
+    if(debugInfo.guidanceVec){
+      const g=debugInfo.guidanceVec;
+      const cx2=(currentCfg[0]-s.iW/2)*vs2,cy2=currentCfg[1]*vs2,cz2=(currentCfg[2]-s.iD/2)*vs2;
+      const gScale=15;
+      const p1=project(cx2,cy2,cz2);
+      const p2=project(cx2+g[0]*gScale,cy2+g[1]*gScale,cz2+g[2]*gScale);
+      ctx.strokeStyle='rgba(95,158,126,0.8)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(p1.sx,p1.sy);ctx.lineTo(p2.sx,p2.sy);ctx.stroke();
+    }
+    // Yellow: final blended direction
+    if(debugInfo.finalVec){
+      const f=debugInfo.finalVec;
+      const cx2=(currentCfg[0]-s.iW/2)*vs2,cy2=currentCfg[1]*vs2,cz2=(currentCfg[2]-s.iD/2)*vs2;
+      const fScale=15;
+      const p1=project(cx2,cy2,cz2);
+      const p2=project(cx2+f[0]*fScale,cy2+f[1]*fScale,cz2+f[2]*fScale);
+      ctx.strokeStyle='rgba(220,200,80,0.8)';ctx.lineWidth=2;ctx.setLineDash([3,2]);
+      ctx.beginPath();ctx.moveTo(p1.sx,p1.sy);ctx.lineTo(p2.sx,p2.sy);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // Avoidance weight readout
+    ctx.fillStyle='rgba(220,200,80,0.7)';ctx.font='10px "Space Mono",monospace';ctx.textAlign='right';
+    ctx.fillText('avoid: '+debugInfo.avoidWeight.toFixed(2),cw/2-10,-ch/2+20);
+  }
+
+  ctx.restore();
+}
+
+// ================================================================
+//  ANIMATION
+// ================================================================
+function resizeCanvas(){
+  const dpr=window.devicePixelRatio||1;
+  const r=canvas.parentElement.getBoundingClientRect();
+  // iOS Safari fix: if parent reports 0, use fallback sizing
+  const w=r.width>10?r.width:window.innerWidth-(window.innerWidth>1024?310:0);
+  const h=r.height>10?r.height:max(300,window.innerHeight*0.5);
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+}
+
+// ================================================================
+//  LIVE ANIMATION — original reactive physics + installer labels
+// ================================================================
+function startLiveAnim(){
+  resizeCanvas();
+  $('leg').style.display='block';
+  ghostTrail=[];solvedPath=null;
+  playing=true;paused=false;
+  $('btnPlay').textContent='⏸ Pause';$('btnPlay').classList.add('act');
+  if(raf)cancelAnimationFrame(raf);
+
+  let frameAccum=0,lastTs=null;
+  let smoothCfg=null; // low-pass filtered position for display
+  function tick(ts){
+    if(!lastTs)lastTs=ts;
+    if(paused){lastTs=null;raf=requestAnimationFrame(tick);return;}
+    const dt=(ts-lastTs)*speed;lastTs=ts;
+    frameAccum+=dt;
+    const L=liveSim;
+    if(!L||L.done||L.fail){
+      drawScene(L?L.cur:null,showGhosts?ghostTrail:[],L?L.fail:false,L?L.lastDebug:null);
+      playing=false;$('btnPlay').textContent='▶ Replay';$('btnPlay').classList.remove('act');
+      return;
+    }
+
+    const stepsPerFrame=max(1,floor(frameAccum/12));
+    frameAccum-=stepsPerFrame*12;
+
+    for(let s=0;s<min(stepsPerFrame,5);s++){
+      if(L.done||L.fail)break;
+      const result=reactiveStep(L.cur,L.goalCfg,sim.collider,sim.hx,sim.hy,sim.hz,L.probes,L.stuckCount);
+      L.lastDebug=result;
+      if(result.next){
+        L.cur=result.next;
+        L.stepCount++;
+        if(L.stepCount%8===0) ghostTrail.push([...L.cur]);
+        if(abs(result.gd-L.prevDist)<0.05)L.stuckCount++;
+        else L.stuckCount=max(0,L.stuckCount-2);
+        L.prevDist=result.gd;
+        if(result.gd<2){L.cur=[...L.goalCfg];L.done=true;
+          sim.result={ok:true,method:'live reactive ('+L.strategies.join('+')+')',path:ghostTrail,nodes:L.stepCount};
+          saveSuccessfulPath(ghostTrail);
+          renderResults();}
+      } else {
+        L.stuckCount+=5;
+      }
+      if(L.stuckCount>150){L.fail=true;
+        sim.result={ok:false,reason:'path',msg:'Slab got stuck — could not find collision-free path.',path:ghostTrail};
+        renderResults();}
+      if(L.stepCount>3000){L.fail=true;
+        sim.result={ok:false,reason:'path',msg:'Exceeded max steps without reaching goal.',path:ghostTrail};
+        renderResults();}
+    }
+
+    // Smooth the display position (low-pass filter removes jitter)
+    if(!smoothCfg) smoothCfg=L.cur.slice();
+    else for(let i=0;i<6;i++) smoothCfg[i]=smoothCfg[i]*0.7+L.cur[i]*0.3;
+    const displayCfg=smoothCfg;
+
+    // Phase detection based on slab position
+    const zPct=1-((displayCfg[2]||0)/sim.iD);
+    const phaseName=L.fail?'STUCK':L.done?'COMPLETE':
+      zPct<0.1?'APPROACH':zPct<0.3?'THROAT':zPct<0.5?'DEEP ENTRY':
+      zPct<0.7?'PIVOT':zPct<0.85?'CLEARANCE':'SETTLE';
+    const phaseDesc={
+      'APPROACH':'Installer reads the space — slab angled for entry',
+      'THROAT':'Leading corner threading through door opening',
+      'DEEP ENTRY':'Pushing leading end deep before the pivot',
+      'PIVOT':'Anchoring deep corner — rotating trailing end',
+      'CLEARANCE':'All corners clearing door frame',
+      'SETTLE':'Lowering slab into final resting position',
+      'STUCK':'⚠ Slab is stuck — cannot complete the maneuver',
+      'COMPLETE':'Slab resting safely inside the elevator',
+    };
+    const stratLabel=L.strategies?L.strategies.join(' + '):'';
+
+    let debugTxt='';
+    if(debugMode&&L.lastDebug){
+      const d=L.lastDebug;
+      const v=d.finalVec||[0,0,0,0,0,0];
+      debugTxt=`<br><span style="color:var(--tx3);font-size:10px">` +
+        `vel: X${v[0]>=0?'+':''}${v[0].toFixed(2)} Y${v[1]>=0?'+':''}${v[1].toFixed(2)} Z${v[2]>=0?'+':''}${v[2].toFixed(2)} ` +
+        `rot: R${(v[3]*180/PI).toFixed(1)}° P${(v[4]*180/PI).toFixed(1)}° Y${(v[5]*180/PI).toFixed(1)}°` +
+        `<br>phase: ${phaseName} · strategy: ${stratLabel}` +
+        `<br>avoid: ${d.avoidWeight.toFixed(2)} · minDist: ${d.worstMinDist.toFixed(1)}" · stuck: ${L.stuckCount} · step: ${L.stepCount}</span>`;
+    }
+    $('narr').innerHTML=`<div class="narr-box"><div class="lb">${L.fail?'⚠ FAIL':L.done?'✓ Complete':phaseName}</div>${phaseDesc[phaseName]||phaseName}${debugTxt}</div>`;
+
+    drawScene(displayCfg,showGhosts?ghostTrail:[],L.fail,debugMode?L.lastDebug:null);
+
+    if(!L.done&&!L.fail) raf=requestAnimationFrame(tick);
+    else{playing=false;$('btnPlay').textContent='▶ Replay';$('btnPlay').classList.remove('act');}
+  }
+  raf=requestAnimationFrame(tick);
+}
+
+function togglePlay(){
+  if(!liveSim&&!solvedPath)return;
+  if(!playing){
+    if(liveSim&&(liveSim.done||liveSim.fail)){
+      const startCfg=sim.startCfg;
+      const bestGoal=sim.goalCfgs[0];
+      const w=max(sim.iW,sim.iD,sim.iH)/PI;
+      const strategies=selectStrategies(sim.sL,sim.sW,sim.sT,sim.dW,sim.dH,sim.iW,sim.iD,sim.iH,sim.dOff||0);
+      liveSim={cur:[...startCfg],goalCfg:bestGoal.cfg,probes:slabProbes(sim.hx,sim.hy,sim.hz),
+        stuckCount:0,prevDist:cfgDist(startCfg,bestGoal.cfg,w),trail:[],stepCount:0,done:false,fail:false,w,lastDebug:null,strategies};
+      ghostTrail=[];
+    }
+    startLiveAnim();return;
+  }
+  paused=!paused;
+  $('btnPlay').textContent=paused?'▶ Play':'⏸ Pause';
+  $('btnPlay').classList.toggle('act',!paused);
+}
+function resetAnim(){
+  if(raf)cancelAnimationFrame(raf);
+  playing=false;paused=false;
+  $('btnPlay').textContent='▶ Play';$('btnPlay').classList.remove('act');
+  if(sim&&sim.startCfg&&sim.goalCfgs&&sim.goalCfgs.length>0){
+    const w=max(sim.iW,sim.iD,sim.iH)/PI;
+    const strategies=selectStrategies(sim.sL,sim.sW,sim.sT,sim.dW,sim.dH,sim.iW,sim.iD,sim.iH,sim.dOff||0);
+    liveSim={cur:[...sim.startCfg],goalCfg:sim.goalCfgs[0].cfg,probes:slabProbes(sim.hx,sim.hy,sim.hz),
+      stuckCount:0,prevDist:cfgDist(sim.startCfg,sim.goalCfgs[0].cfg,w),trail:[],stepCount:0,done:false,fail:false,w,lastDebug:null,strategies};
+    ghostTrail=[];
+    drawScene(sim.startCfg,[],false);
+  }
+}
+
+// ================================================================
+//  VIEW PRESETS + ORBIT
+// ================================================================
+function ease(t){return t<.5?4*t*t*t:(t-1)*(2*t-2)*(2*t-2)+1;}
+function lerp(a,b,t){return a+(b-a)*t;}
+function setView(v){
+  const views={front:[-0.12,0],top:[-PI/2+.01,0],side:[-0.12,PI/2],iso:[-0.42,0.55]};
+  const[rx,ry]=views[v]||views.iso;
+  const srx=camRx,sry=camRy;let st=null;
+  function step(ts){if(!st)st=ts;const t=min((ts-st)/400,1);const e=ease(t);
+    camRx=lerp(srx,rx,e);camRy=lerp(sry,ry,e);
+    redrawStatic();
+    if(t<1)requestAnimationFrame(step);
+  }requestAnimationFrame(step);
+}
+// Redraw the current static frame (manual preview OR solved path)
+function redrawStatic(){
+  if(manualMode&&sim&&manualCfg){
+    const free=sim.collider.isFree(manualCfg,sim.hx,sim.hy,sim.hz);
+    drawScene(manualCfg,[],!free);
+  } else if(sim&&!playing&&liveSim){
+    drawScene(liveSim.cur,showGhosts?ghostTrail:[],liveSim.fail);
+  }
+}
+canvas.addEventListener('mousedown',e=>{dragSt={x:e.clientX,y:e.clientY};crx0=camRx;cry0=camRy;});
+window.addEventListener('mousemove',e=>{if(!dragSt)return;camRy=cry0+(e.clientX-dragSt.x)*.005;camRx=max(-PI/2+.01,min(-.01,crx0+(e.clientY-dragSt.y)*.005));redrawStatic();});
+window.addEventListener('mouseup',()=>{dragSt=null;});
+canvas.addEventListener('touchstart',e=>{if(e.touches.length===1){const t=e.touches[0];dragSt={x:t.clientX,y:t.clientY};crx0=camRx;cry0=camRy;}},{passive:true});
+canvas.addEventListener('touchmove',e=>{if(!dragSt||e.touches.length!==1)return;const t=e.touches[0];camRy=cry0+(t.clientX-dragSt.x)*.005;camRx=max(-PI/2+.01,min(-.01,crx0+(t.clientY-dragSt.y)*.005));redrawStatic();},{passive:true});
+canvas.addEventListener('touchend',()=>{dragSt=null;},{passive:true});
+canvas.addEventListener('wheel',e=>{e.preventDefault();camDist=max(80,min(600,camDist+e.deltaY*.3));redrawStatic();},{passive:false});
+window.addEventListener('resize',()=>{resizeCanvas();redrawStatic();});
+
+// ================================================================
+//  MANUAL START POSITION
+// ================================================================
+// Set the manual sliders to reflect a computed starting config
+function setManualSlidersFromCfg(cfg){
+  // Reverse-map world config to slider values
+  // Rotation sliders are direct (degrees)
+  $('mRx').value=max(-90,min(90,cfg[3]*180/PI));
+  $('mRy').value=max(-90,min(90,cfg[4]*180/PI));
+  $('mRz').value=max(-90,min(90,cfg[5]*180/PI));
+  $('mRxv').textContent=Math.round(cfg[3]*180/PI)+'°';
+  $('mRyv').textContent=Math.round(cfg[4]*180/PI)+'°';
+  $('mRzv').textContent=Math.round(cfg[5]*180/PI)+'°';
+  // Position sliders: approximate (these are normalized 0-1 or -1..1)
+  $('mX').value=0; $('mXv').textContent='center';
+  $('mY').value=0; $('mYv').textContent='floor';
+  $('mZ').value=0.5; $('mZv').textContent='at door';
+}
+
+function buildManualSim(){
+  // Build a lightweight sim object for preview
+  const dW=toIn(+$('doorW').value||0),dH_=toIn(+$('doorH').value||0);
+  const iW=toIn(+$('intW').value||0),iD=toIn(+$('intD').value||0),iH=toIn(+$('intH').value||0);
+  const dims=[toIn(+$('slabL').value||0),toIn(+$('slabW').value||0),toIn(+$('slabT').value||0)].sort((a,b)=>b-a);
+  const[sL,sW,sT]=dims;
+  const hx=sL/2,hy=sT/2,hz=sW/2;
+  const dOff=getDoorOffset();
+  const collider=new Collider(iW,iD,iH,dW,dH_,dOff);
+  return{iW,iD,iH,dW,dH:dH_,sL,sW,sT,hx,hy,hz,collider,dOff};
+}
+
+function getManualCfg(s){
+  // Map slider values [0..1 or degrees] to world coordinates
+  const mx=parseFloat($('mX').value); // -1..1
+  const my=parseFloat($('mY').value); // 0..1
+  const mz=parseFloat($('mZ').value); // 0..1
+  const mrx=parseFloat($('mRx').value)*PI/180;
+  const mry=parseFloat($('mRy').value)*PI/180;
+  const mrz=parseFloat($('mRz').value)*PI/180;
+
+  // Compute AABB for current rotation to know the slab's bounding size
+  const R=rotMat(mrx,mry,mrz);
+  let mny=1e9;
+  for(let sx=-1;sx<=1;sx+=2)for(let sy=-1;sy<=1;sy+=2)for(let sz=-1;sz<=1;sz+=2){
+    const[_,ly]=rApply(R,s.hx*sx,s.hy*sy,s.hz*sz);
+    mny=min(mny,ly);
+  }
+
+  const x=s.iW/2 + mx*s.iW*0.8;
+  const yFloor=-mny; // bottom of slab at floor
+  const y=yFloor + my*(s.iH-(-mny)*2);
+  const z=s.iD + s.sL*0.5 - mz*(s.iD + s.sL);
+
+  return[x, max(y,0.1), z, mrx, mry, mrz];
+}
+
+function updateManualPreview(){
+  if(!manualMode) return;
+  const s=sim||buildManualSim();
+  if(!sim) sim=s; // temporary sim for rendering
+  const cfg=getManualCfg(s);
+  manualCfg=cfg;
+
+  // Update value labels
+  $('mXv').textContent=(parseFloat($('mX').value)>0.01?'right':parseFloat($('mX').value)<-0.01?'left':'center');
+  $('mYv').textContent=parseFloat($('mY').value)<0.01?'floor':'lifted';
+  $('mZv').textContent=parseFloat($('mZ').value)>0.7?'inside':parseFloat($('mZ').value)>0.3?'at door':'outside';
+  $('mRxv').textContent=$('mRx').value+'°';
+  $('mRyv').textContent=$('mRy').value+'°';
+  $('mRzv').textContent=$('mRz').value+'°';
+
+  // Collision check
+  const free=s.collider.isFree(cfg,s.hx,s.hy,s.hz);
+  const st=$('mStatus');
+  st.style.display='block';
+  st.className='m-status '+(free?'ok':'bad');
+  st.textContent=free?'✓ No collision — valid start position':'✗ Colliding with wall — adjust position';
+
+  // Live preview
+  resizeCanvas();
+  $('leg').style.display='block';
+  drawScene(cfg,[],!free);
+  $('narr').innerHTML=`<div class="narr-box"><div class="lb">Manual Position</div>Drag sliders to set how you'd hold the slab. Click "Solve From Here" when ready.</div>`;
+}
+
+// Wire up all manual sliders
+['mX','mY','mZ','mRx','mRy','mRz'].forEach(id=>{
+  $(id).addEventListener('input',()=>{
+    manualMode=true;
+    // Stop any running animation
+    if(raf)cancelAnimationFrame(raf);
+    playing=false;paused=false;
+    $('btnPlay').textContent='▶ Play';$('btnPlay').classList.remove('act');
+    updateManualPreview();
+  });
+});
+
+async function solveFromManual(){
+  const s=buildManualSim();
+  const cfg=getManualCfg(s);
+
+  if(!s.collider.isFree(cfg,s.hx,s.hy,s.hz)){
+    alert('Current position is colliding with a wall. Adjust the sliders until the status shows green.');
+    return;
+  }
+
+  $('solveBtn').disabled=true;$('solveBtn').textContent='Planning trajectory...';
+  $('goBtn').disabled=true;
+
+  const collider=s.collider;
+  const doorOris=findDoorOrientations(s.hx,s.hy,s.hz,s.dW,s.dH);
+  const goalCfgs=findGoalConfigs(s.iW,s.iD,s.iH,s.hx,s.hy,s.hz,collider);
+
+  sim=s;
+  sim.doorOris=doorOris;
+  sim.goalCfgs=goalCfgs;
+  sim.startCfg=cfg;
+
+  if(goalCfgs.length===0){
+    sim.result={ok:false,reason:'interior',msg:'Cannot fit inside elevator in any orientation'};
+    $('solveBtn').disabled=false;$('solveBtn').textContent='Solve From Here';$('goBtn').disabled=false;
+    finishSim(false);return;
+  }
+
+  $('solveBtn').disabled=false;$('solveBtn').textContent='Solve From Here';$('goBtn').disabled=false;
+
+  const bestGoal=goalCfgs[0];
+  const w=max(s.iW,s.iD,s.iH)/PI;
+  const strategies=selectStrategies(s.sL,s.sW,s.sT,s.dW,s.dH,s.iW,s.iD,s.iH,s.dOff||0);
+  liveSim={
+    cur:[...cfg],goalCfg:bestGoal.cfg,
+    probes:slabProbes(s.hx,s.hy,s.hz),
+    stuckCount:0,prevDist:cfgDist(cfg,bestGoal.cfg,w),
+    trail:[],stepCount:0,done:false,fail:false,w,lastDebug:null,strategies
+  };
+  sim.result={ok:null,method:'live reactive (manual)',path:[]};
+  manualMode=false;
+  startLiveAnim();
+}
+
+// Ghost trail toggle
+$('showGhost').addEventListener('change',e=>{
+  showGhosts=e.target.checked;
+  if(sim&&liveSim&&!playing){
+    drawScene(liveSim.cur,showGhosts?ghostTrail:[],liveSim.fail);
+  }
+});
+
+// ================================================================
+//  MAIN SIMULATION
+// ================================================================
+
+// ================================================================
+//  PATH MEMORY — save successful paths, replay on matching dimensions
+// ================================================================
+function dimKey(s){
+  const r=v=>Math.round(v*2)/2;
+  return `${r(s.iW)}_${r(s.iD)}_${r(s.iH)}_${r(s.dW)}_${r(s.dH)}_${r(s.dOff||0)}_${r(s.sL)}_${r(s.sW)}_${r(s.sT)}`;
+}
+
+// In-memory cache (survives page session) + IndexedDB (survives browser close)
+const _pathCache={};
+let _idb=null;
+
+// Open IndexedDB (works on file:// unlike localStorage)
+(function initDB(){
+  try{
+    const req=indexedDB.open('SlabPathDB',1);
+    req.onupgradeneeded=e=>{e.target.result.createObjectStore('paths')};
+    req.onsuccess=e=>{_idb=e.target.result;
+      // Load all saved paths into memory cache
+      const tx=_idb.transaction('paths','readonly');
+      const st=tx.objectStore('paths');
+      const cur=st.openCursor();
+      cur.onsuccess=e2=>{
+        const c=e2.target.result;
+        if(c){_pathCache[c.key]=c.value;c.continue();}
+      };
+    };
+    req.onerror=()=>{};
+  }catch(e){}
+})();
+
+function saveSuccessfulPath(trail){
+  if(!sim||trail.length<5) return;
+  const key=dimKey(sim);
+  const compact=[];
+  for(let i=0;i<trail.length;i+=4) compact.push(trail[i]);
+  compact.push(trail[trail.length-1]);
+  const entry={path:compact, ts:Date.now()};
+
+  // Save to memory
+  _pathCache[key]=entry;
+
+  // Save to IndexedDB
+  try{
+    if(_idb){
+      const tx=_idb.transaction('paths','readwrite');
+      tx.objectStore('paths').put(entry,key);
+    }
+  }catch(e){}
+
+  // Keep max 100 entries in memory
+  const keys=Object.keys(_pathCache);
+  if(keys.length>100){
+    keys.sort((a,b)=>(_pathCache[a].ts||0)-(_pathCache[b].ts||0));
+    delete _pathCache[keys[0]];
+    try{if(_idb){const tx=_idb.transaction('paths','readwrite');tx.objectStore('paths').delete(keys[0]);}}catch(e){}
+  }
+}
+
+function loadCachedPath(){
+  if(!sim) return null;
+  const key=dimKey(sim);
+  const entry=_pathCache[key];
+  return entry?entry.path:null;
+}
+
+function replayCachedPath(path){
+  ghostTrail=[];solvedPath=path;
+  resizeCanvas();$('leg').style.display='block';
+  playing=true;paused=false;
+  $('btnPlay').textContent='⏸ Pause';$('btnPlay').classList.add('act');
+  if(raf)cancelAnimationFrame(raf);
+  let idx=0,lastTs=null;
+  function tick(ts){
+    if(!lastTs)lastTs=ts;
+    if(paused){lastTs=null;raf=requestAnimationFrame(tick);return;}
+    const elapsed=(ts-lastTs)*speed;lastTs=ts;
+    idx=min(idx+max(1,floor(elapsed/16)),path.length-1);
+    const cfg=path[idx];
+    if(idx%3===0) ghostTrail.push(cfg);
+    const pct=idx/(path.length-1);
+    const label=pct>=1?'✓ Complete (cached)':'Replaying saved path';
+    const text=pct>=1?'Using previously successful maneuver for these exact dimensions':'Replaying a path that worked before — no solver needed';
+    $('narr').innerHTML=`<div class="narr-box"><div class="lb">${label}</div>${text}</div>`;
+    drawScene(cfg,showGhosts?ghostTrail:[],false);
+    if(idx<path.length-1){raf=requestAnimationFrame(tick);}
+    else{
+      playing=false;$('btnPlay').textContent='▶ Replay';$('btnPlay').classList.remove('act');
+      sim.result={ok:true,method:'cached path (saved from previous success)',path,nodes:path.length};
+      renderResults();
+    }
+  }
+  raf=requestAnimationFrame(tick);
+}
+
+function startManualMode(){
+  $('goBtn').disabled=true;$('goBtn').textContent='Setting up...';
+  const dW=toIn(+$('doorW').value||0),dH_=toIn(+$('doorH').value||0);
+  const iW=toIn(+$('intW').value||0),iD=toIn(+$('intD').value||0),iH=toIn(+$('intH').value||0);
+  const dims=[toIn(+$('slabL').value||0),toIn(+$('slabW').value||0),toIn(+$('slabT').value||0)].sort((a,b)=>b-a);
+  const[sL,sW,sT]=dims;
+  const hx=sL/2,hy=sT/2,hz=sW/2;
+  const dOff=getDoorOffset();
+  const collider=new Collider(iW,iD,iH,dW,dH_,dOff);
+  const doorOris=findDoorOrientations(hx,hy,hz,dW,dH_);
+  const goalCfgs=findGoalConfigs(iW,iD,iH,hx,hy,hz,collider);
+  sim={iW,iD,iH,dW,dH:dH_,sL,sW,sT,hx,hy,hz,collider,doorOris,goalCfgs,dOff};
+
+  if(doorOris.length===0){sim.result={ok:false,reason:'door',msg:'Cannot fit through door in any orientation (tested 6,859 combos)'};$('goBtn').disabled=false;$('goBtn').textContent='Position & Solve';finishSim(false);return;}
+  if(goalCfgs.length===0){sim.result={ok:false,reason:'interior',msg:'Cannot fit inside elevator in any orientation (tested 6,859 combos)'};$('goBtn').disabled=false;$('goBtn').textContent='Position & Solve';finishSim(false);return;}
+
+  // Compute a good starting position and set the sliders
+  const startCfg=computeCarryStart(hx,hy,hz,doorOris,collider);
+  sim.startCfg=startCfg;
+  sim.doorOris=doorOris;
+  sim.goalCfgs=goalCfgs;
+  setManualSlidersFromCfg(startCfg);
+
+  // Enter manual mode so user can adjust position
+  manualMode=true;
+  $('goBtn').disabled=false;$('goBtn').textContent='Position & Solve';
+  updateManualPreview();
+}
+// Init
+function drawEmpty(){resizeCanvas();const dpr=window.devicePixelRatio||1;ctx.setTransform(dpr,0,0,dpr,0,0);const cw=canvas.width/dpr,ch=canvas.height/dpr;const bg=ctx.createRadialGradient(cw/2,ch/2,0,cw/2,ch/2,cw*.6);bg.addColorStop(0,'#12141a');bg.addColorStop(1,'#0a0b0e');ctx.fillStyle=bg;ctx.fillRect(0,0,cw,ch);ctx.fillStyle='#4e4b56';ctx.font='300 14px "DM Sans",sans-serif';ctx.textAlign='center';ctx.fillText('Enter dimensions and run the simulation',cw/2,ch/2-8);ctx.fillStyle='#2a2830';ctx.font='400 11px "Space Mono",monospace';ctx.fillText('spartan installations',cw/2,ch/2+14);}
+drawEmpty();
+</script>
+</body>
+</html>
