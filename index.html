@@ -94,7 +94,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);heigh
 /* ---- EXPAND MODE ---- */
 .app.expanded .side{display:none}
 .app.expanded .main{grid-column:1/-1}
+.app.expanded .res{display:none}
 .app.expanded .cbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.exp-manual{display:none;background:var(--sf1);border-top:1px solid var(--brd);padding:6px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.app.expanded .exp-manual{display:flex;gap:10px;align-items:center;flex-wrap:nowrap}
+.exp-manual .em-grp{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.exp-manual .em-grp label{font:400 10px 'DM Sans',sans-serif;color:var(--tx3);white-space:nowrap}
+.exp-manual .em-grp input[type=range]{width:70px;accent-color:var(--copper)}
+.exp-manual .em-grp .em-val{font:400 9px 'Space Mono',monospace;color:var(--tx2);min-width:32px;text-align:right}
+.exp-manual .em-sp{width:1px;height:18px;background:var(--brd2);flex-shrink:0}
+.exp-manual button{padding:5px 12px;background:var(--sf3);border:1px solid var(--brd2);border-radius:3px;color:var(--tx2);font:500 11px 'DM Sans',sans-serif;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.exp-manual button:hover{border-color:var(--copper3);color:var(--copper2)}
 
 /* ---- CONTROLS BAR ---- */
 .cbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--sf1);border-top:1px solid var(--brd);flex-wrap:wrap}
@@ -233,6 +243,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);heigh
       <button id="btnExpand" onclick="toggleExpand()">&#9974;</button>
       <button id="btnDebug" onclick="toggleDebug()">Debug</button>
     </div>
+    <div class="exp-manual" id="expManual">
+      <div class="em-grp"><label>X</label><input type="range" id="emX" min="-1" max="1" step="0.01" value="0"><span class="em-val" id="emXv">0</span></div>
+      <div class="em-grp"><label>Height</label><input type="range" id="emY" min="0" max="1" step="0.01" value="0"><span class="em-val" id="emYv">0</span></div>
+      <div class="em-grp"><label>Depth</label><input type="range" id="emZ" min="0" max="1" step="0.01" value="0.5"><span class="em-val" id="emZv">.5</span></div>
+      <div class="em-sp"></div>
+      <div class="em-grp"><label>Tilt</label><input type="range" id="emRx" min="-90" max="90" step="1" value="0"><span class="em-val" id="emRxv">0°</span></div>
+      <div class="em-grp"><label>Turn</label><input type="range" id="emRy" min="-90" max="90" step="1" value="0"><span class="em-val" id="emRyv">0°</span></div>
+      <div class="em-grp"><label>Roll</label><input type="range" id="emRz" min="-90" max="90" step="1" value="0"><span class="em-val" id="emRzv">0°</span></div>
+      <div class="em-sp"></div>
+      <button onclick="solveFromExpanded()">Solve From Here</button>
+    </div>
     <div class="res" id="res">
       <h3>Analysis</h3>
       <div id="emptyMsg" class="empty-msg">Enter dimensions above and run the simulation</div>
@@ -262,7 +283,45 @@ function setStatus(label,text,debug){
 }
 function nudgeCam(dRx,dRy){camRx=max(-PI/2+.01,min(-.01,camRx+dRx));camRy+=dRy;redrawStatic();}
 function nudgeZoom(d){camDist=max(80,min(600,camDist+d));redrawStatic();}
-function toggleExpand(){expanded=!expanded;document.querySelector('.app').classList.toggle('expanded',expanded);$('btnExpand').classList.toggle('act',expanded);setTimeout(()=>{resizeCanvas();redrawStatic();},50);}
+function toggleExpand(){
+  expanded=!expanded;
+  document.querySelector('.app').classList.toggle('expanded',expanded);
+  $('btnExpand').classList.toggle('act',expanded);
+  // Sync expanded sliders from sidebar sliders
+  if(expanded) syncExpSliders();
+  setTimeout(()=>{resizeCanvas();redrawStatic();},50);
+}
+function syncExpSliders(){
+  $('emX').value=$('mX').value;$('emY').value=$('mY').value;$('emZ').value=$('mZ').value;
+  $('emRx').value=$('mRx').value;$('emRy').value=$('mRy').value;$('emRz').value=$('mRz').value;
+  updateExpLabels();
+}
+function syncSidebarSliders(){
+  $('mX').value=$('emX').value;$('mY').value=$('emY').value;$('mZ').value=$('emZ').value;
+  $('mRx').value=$('emRx').value;$('mRy').value=$('emRy').value;$('mRz').value=$('emRz').value;
+}
+function updateExpLabels(){
+  $('emXv').textContent=parseFloat($('emX').value).toFixed(1);
+  $('emYv').textContent=parseFloat($('emY').value).toFixed(1);
+  $('emZv').textContent=parseFloat($('emZ').value).toFixed(1);
+  $('emRxv').textContent=$('emRx').value+'°';
+  $('emRyv').textContent=$('emRy').value+'°';
+  $('emRzv').textContent=$('emRz').value+'°';
+}
+// Wire up expanded sliders — sync to sidebar + live preview
+['emX','emY','emZ','emRx','emRy','emRz'].forEach(id=>{
+  $(id).addEventListener('input',()=>{
+    updateExpLabels();
+    syncSidebarSliders();
+    // Trigger manual preview
+    manualMode=true;
+    if(raf)cancelAnimationFrame(raf);
+    playing=false;paused=false;
+    $('btnPlay').textContent='▶ Play';$('btnPlay').classList.remove('act');
+    updateManualPreview();
+  });
+});
+function solveFromExpanded(){syncSidebarSliders();solveFromManual();}
 let speed=0.6;
 const canvas=$('c3d'),ctx=canvas.getContext('2d');
 
