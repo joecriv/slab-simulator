@@ -83,14 +83,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);heigh
 .v3d::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;box-shadow:inset 0 0 60px rgba(0,0,0,.5);border-radius:0}
 .v3d canvas{display:block;width:100%;height:100%}
 
-/* ---- OVERLAYS ---- */
-.narr{position:absolute;top:14px;left:14px;right:14px;pointer-events:none;z-index:2}
-.narr-box{background:linear-gradient(135deg,rgba(16,18,22,.92),rgba(10,11,14,.92));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(12px);border:1px solid var(--brd2);border-radius:4px;padding:10px 14px;font-size:12px;line-height:1.5;pointer-events:auto;box-shadow:0 8px 32px rgba(0,0,0,.4)}
-.narr-box .lb{font:600 9px/1 'Space Mono',monospace;text-transform:uppercase;letter-spacing:1.5px;color:var(--copper);margin-bottom:4px;display:block}
-.leg{position:absolute;bottom:14px;left:14px;background:linear-gradient(135deg,rgba(16,18,22,.9),rgba(10,11,14,.9));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(12px);border:1px solid var(--brd2);border-radius:4px;padding:10px 14px;z-index:2;box-shadow:0 8px 32px rgba(0,0,0,.4)}
-.leg h4{font:600 8px/1 'Space Mono',monospace;text-transform:uppercase;letter-spacing:2px;color:var(--tx3);margin-bottom:8px}
-.leg-i{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11px;color:var(--tx2)}.leg-i:last-child{margin-bottom:0}
-.leg-s{width:16px;height:8px;border-radius:1px;flex-shrink:0}
+/* ---- STATUS BAR (replaces overlays) ---- */
+.status-bar{background:var(--sf2);border-top:1px solid var(--brd);padding:4px 12px;font:400 11px 'DM Sans',sans-serif;color:var(--tx2);display:flex;align-items:center;gap:8px;min-height:26px;flex-shrink:0}
+.status-bar .slb{font:600 9px 'Space Mono',monospace;color:var(--copper);text-transform:uppercase;letter-spacing:1px}
+.status-bar .sdb{font:10px 'Space Mono',monospace;color:var(--tx3)}
+
+/* ---- CAM BUTTONS ---- */
+.cam-btns button{width:32px;height:28px;font-size:14px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+
+/* ---- EXPAND MODE ---- */
+.app.expanded .side{display:none}
+.app.expanded .main{grid-column:1/-1}
+.app.expanded .cbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
 
 /* ---- CONTROLS BAR ---- */
 .cbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--sf1);border-top:1px solid var(--brd);flex-wrap:wrap}
@@ -197,22 +201,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);heigh
   <div class="main">
     <div class="v3d" id="v3d">
       <canvas id="c3d"></canvas>
-      <div class="narr" id="narr"></div>
-      <div class="leg" id="leg" style="display:none">
-        <h4>Legend</h4>
-        <div class="leg-i"><div class="leg-s" style="background:rgba(80,90,110,.5)"></div>Elevator cabin</div>
-        <div class="leg-i"><div class="leg-s" style="background:rgba(45,50,60,.8)"></div>Floor surface</div>
-        <div class="leg-i"><div class="leg-s" style="background:var(--copper);opacity:.4"></div>Door opening</div>
-        <div class="leg-i"><div class="leg-s" style="background:var(--sand)"></div>Stone slab</div>
-        <div class="leg-i"><div class="leg-s" style="background:rgba(100,160,220,.2)"></div>Swept volume</div>
-        <div class="leg-i"><div class="leg-s" style="background:var(--ember)"></div>Collision</div>
-      </div>
       <div class="prog" id="prog" style="display:none">
         <div style="font:300 13px 'DM Sans',sans-serif;color:var(--tx2)">Computing entry path...</div>
         <div class="pt" id="progTxt">0 / 1200</div>
         <div class="pbar"><div class="pfill" id="progBar"></div></div>
       </div>
     </div>
+    <div class="status-bar"><span class="slb" id="statusLabel">Ready</span><span id="statusText">Enter dimensions and run the simulation</span><span class="sdb" id="statusDebug"></span></div>
     <div class="cbar">
       <button id="btnPlay" onclick="togglePlay()">&#9654; Play</button>
       <button onclick="resetAnim()">&#8634; Reset</button>
@@ -221,14 +216,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);heigh
       <input type="range" id="spdR" min="0.1" max="3" step="0.05" value="0.6">
       <span class="lb" id="spdL">0.6x</span>
       <div class="sp"></div>
-      <span class="lb">Camera</span>
       <button onclick="setView('front')">Front</button>
       <button onclick="setView('top')">Top</button>
       <button onclick="setView('side')">Side</button>
-      <button onclick="setView('iso')">Orbit</button>
+      <button onclick="setView('iso')">3D</button>
       <div class="sp"></div>
+      <span class="cam-btns">
+        <button onclick="nudgeCam(0,-0.15)">&#8592;</button>
+        <button onclick="nudgeCam(0,0.15)">&#8594;</button>
+        <button onclick="nudgeCam(-0.15,0)">&#8593;</button>
+        <button onclick="nudgeCam(0.15,0)">&#8595;</button>
+        <button onclick="nudgeZoom(-30)">+</button>
+        <button onclick="nudgeZoom(30)">-</button>
+      </span>
+      <div class="sp"></div>
+      <button id="btnExpand" onclick="toggleExpand()">&#9974;</button>
       <button id="btnDebug" onclick="toggleDebug()">Debug</button>
-      <span class="hint">drag to orbit / scroll to zoom</span>
     </div>
     <div class="res" id="res">
       <h3>Analysis</h3>
@@ -249,6 +252,17 @@ let unit='in',sim=null,solvedPath=null,ghostTrail=[];
 let playing=false,paused=false,raf=null,animT=0,animStart=null;
 let manualMode=false,manualCfg=null,showGhosts=true,debugMode=false;
 let camRx=-0.42,camRy=0.55,camDist=320,dragSt=null,crx0,cry0;
+let expanded=false;
+
+// Status bar helper — replaces all narr overlays
+function setStatus(label,text,debug){
+  $('statusLabel').textContent=label||'';
+  $('statusText').textContent=text||'';
+  $('statusDebug').innerHTML=debug||'';
+}
+function nudgeCam(dRx,dRy){camRx=max(-PI/2+.01,min(-.01,camRx+dRx));camRy+=dRy;redrawStatic();}
+function nudgeZoom(d){camDist=max(80,min(600,camDist+d));redrawStatic();}
+function toggleExpand(){expanded=!expanded;document.querySelector('.app').classList.toggle('expanded',expanded);$('btnExpand').classList.toggle('act',expanded);setTimeout(()=>{resizeCanvas();redrawStatic();},50);}
 let speed=0.6;
 const canvas=$('c3d'),ctx=canvas.getContext('2d');
 
@@ -1156,7 +1170,7 @@ function resizeCanvas(){
 // ================================================================
 function startLiveAnim(){
   resizeCanvas();
-  $('leg').style.display='block';
+  
   ghostTrail=[];solvedPath=null;
   playing=true;paused=false;
   $('btnPlay').textContent='⏸ Pause';$('btnPlay').classList.add('act');
@@ -1231,13 +1245,12 @@ function startLiveAnim(){
     if(debugMode&&L.lastDebug){
       const d=L.lastDebug;
       const v=d.finalVec||[0,0,0,0,0,0];
-      debugTxt=`<br><span style="color:var(--tx3);font-size:10px">` +
-        `vel: X${v[0]>=0?'+':''}${v[0].toFixed(2)} Y${v[1]>=0?'+':''}${v[1].toFixed(2)} Z${v[2]>=0?'+':''}${v[2].toFixed(2)} ` +
-        `rot: R${(v[3]*180/PI).toFixed(1)}° P${(v[4]*180/PI).toFixed(1)}° Y${(v[5]*180/PI).toFixed(1)}°` +
-        `<br>phase: ${phaseName} · strategy: ${stratLabel}` +
-        `<br>avoid: ${d.avoidWeight.toFixed(2)} · minDist: ${d.worstMinDist.toFixed(1)}" · stuck: ${L.stuckCount} · step: ${L.stepCount}</span>`;
+      debugTxt=`X${v[0]>=0?'+':''}${v[0].toFixed(1)} Y${v[1]>=0?'+':''}${v[1].toFixed(1)} Z${v[2]>=0?'+':''}${v[2].toFixed(1)} `+
+        `R${(v[3]*180/PI).toFixed(0)}° P${(v[4]*180/PI).toFixed(0)}° Y${(v[5]*180/PI).toFixed(0)}° `+
+        `av:${d.avoidWeight.toFixed(2)} st:${L.stuckCount}`;
     }
-    $('narr').innerHTML=`<div class="narr-box"><div class="lb">${L.fail?'⚠ FAIL':L.done?'✓ Complete':phaseName}</div>${phaseDesc[phaseName]||phaseName}${debugTxt}</div>`;
+    const statusLbl=L.fail?'FAIL':L.done?'COMPLETE':phaseName;
+    setStatus(statusLbl, phaseDesc[phaseName]||phaseName, debugTxt);
 
     drawScene(displayCfg,showGhosts?ghostTrail:[],L.fail,debugMode?L.lastDebug:null);
 
@@ -1392,9 +1405,9 @@ function updateManualPreview(){
 
   // Live preview
   resizeCanvas();
-  $('leg').style.display='block';
+  
   drawScene(cfg,[],!free);
-  $('narr').innerHTML=`<div class="narr-box"><div class="lb">Manual Position</div>Drag sliders to set how you'd hold the slab. Click "Solve From Here" when ready.</div>`;
+  setStatus('Manual','Drag sliders to position slab. Click Solve From Here when ready.');
 }
 
 // Wire up all manual sliders
@@ -1532,7 +1545,7 @@ function loadCachedPath(){
 
 function replayCachedPath(path){
   ghostTrail=[];solvedPath=path;
-  resizeCanvas();$('leg').style.display='block';
+  resizeCanvas();
   playing=true;paused=false;
   $('btnPlay').textContent='⏸ Pause';$('btnPlay').classList.add('act');
   if(raf)cancelAnimationFrame(raf);
@@ -1547,7 +1560,7 @@ function replayCachedPath(path){
     const pct=idx/(path.length-1);
     const label=pct>=1?'✓ Complete (cached)':'Replaying saved path';
     const text=pct>=1?'Using previously successful maneuver for these exact dimensions':'Replaying a path that worked before — no solver needed';
-    $('narr').innerHTML=`<div class="narr-box"><div class="lb">${label}</div>${text}</div>`;
+    setStatus(label,text);
     drawScene(cfg,showGhosts?ghostTrail:[],false);
     if(idx<path.length-1){raf=requestAnimationFrame(tick);}
     else{
